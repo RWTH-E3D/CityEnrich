@@ -870,12 +870,17 @@ class thermalzones(QtWidgets.QWidget):
         self.btn_cooling = QtWidgets.QPushButton('Cooling')
         self.aGrid.addWidget(self.btn_cooling, 0, 1, 1, 1)
 
-        self.btn_occupancy = QtWidgets.QPushButton('Ventilation')
-        self.aGrid.addWidget(self.btn_occupancy, 1, 0, 1, 1)
+        self.btn_ventilation = QtWidgets.QPushButton('Ventilation')
+        self.aGrid.addWidget(self.btn_ventilation, 1, 0, 1, 1)
 
-        self.btn_light_app = QtWidgets.QPushButton('Occupancy')
-        self.aGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
+        self.btn_occupancy = QtWidgets.QPushButton('Occupancy')
+        self.aGrid.addWidget(self.btn_occupancy, 1, 1, 1, 1)
 
+        self.btn_lighting = QtWidgets.QPushButton('Lighting')
+        self.aGrid.addWidget(self.btn_lighting, 2, 0, 1, 1)
+
+        self.btn_appliances = QtWidgets.QPushButton('Appliances')
+        self.aGrid.addWidget(self.btn_appliances, 2, 1, 1, 1)
 
         self.l2Grid = QtWidgets.QGridLayout()
 
@@ -894,6 +899,11 @@ class thermalzones(QtWidgets.QWidget):
         self.vbox.addLayout(self.l2Grid)
 
         self.btn_heating.clicked.connect(self.func_heating_schedules)
+        self.btn_cooling.clicked.connect(self.func_cooling_schedules)
+        self.btn_ventilation.clicked.connect(self.func_ventilation_schedules)
+        self.btn_occupancy.clicked.connect(self.func_occupancy_schedules)
+        self.btn_appliances.clicked.connect(self.func_appliances_schedules)
+        self.btn_lighting.clicked.connect(self.func_lighting_schedules)
         self.btn_about.clicked.connect(self.func_about)
         # self.btn_reset.clicked.connect(self.func_reset)
         self.btn_exit.clicked.connect(self.func_exit)
@@ -908,6 +918,31 @@ class thermalzones(QtWidgets.QWidget):
         global posx, posy
         posx, posy = gf.dimensions(self)
         gf.next_window(self, heating_schedules(), False)
+
+    def func_cooling_schedules(self):
+        global posx, posy
+        posx, posy = gf.dimensions(self)
+        gf.next_window(self, cooling_schedules(), False)
+
+    def func_ventilation_schedules(self):
+        global posx, posy
+        posx, posy = gf.dimensions(self)
+        gf.next_window(self, ventilation_schedules(), False)
+
+    def func_occupancy_schedules(self):
+        global posx, posy
+        posx, posy = gf.dimensions(self)
+        gf.next_window(self, occupancy_schedules(), False)
+
+    def func_appliances_schedules(self):
+        global posx, posy
+        posx, posy = gf.dimensions(self)
+        gf.next_window(self, appliances_schedules(), False)
+
+    def func_lighting_schedules(self):
+        global posx, posy
+        posx, posy = gf.dimensions(self)
+        gf.next_window(self, lighting_schedules(), False)
 
     def func_exit(self):
         gf.close_application(self)
@@ -937,7 +972,7 @@ class construction(QtWidgets.QWidget):
         self.vbox.addWidget(self.gB_construction)
         self.vBox_forconstruction = QtWidgets.QVBoxLayout()
         self.gB_construction.setLayout(self.vBox_forconstruction)
-
+        # ToDo: from here much of the buttons are currently as placeholders in this class
         # # walls enrichment
         self.gB_Walls = QtWidgets.QGroupBox('Walls')
         self.vBox_forconstruction.addWidget(self.gB_Walls)
@@ -1174,8 +1209,8 @@ class heating_schedules(QtWidgets.QWidget):
         self.lbl_unit = QtWidgets.QLabel('Unit:')
         self.heatingGrid.addWidget(self.lbl_unit, 5, 0, 1, 1)
 
-        self.lbl_unit = QtWidgets.QLineEdit('') # ToDo: (Max) Dropdown?
-        self.heatingGrid.addWidget(self.lbl_unit, 5, 1, 1, 1)
+        self.txt_unit = QtWidgets.QLineEdit('') # ToDo: (Max) Dropdown?
+        self.heatingGrid.addWidget(self.txt_unit, 5, 1, 1, 1)
 
         self.radio_SIunit = QtWidgets.QRadioButton('SI')
         self.heatingGrid.addWidget(self.radio_SIunit, 5, 2, 1, 1)
@@ -1304,6 +1339,758 @@ class heating_schedules(QtWidgets.QWidget):
 
     def func_exit(self):
         gf.close_application(self)
+
+class cooling_schedules(QtWidgets.QWidget):
+    def __init__(self):
+        super(cooling_schedules, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        global posx, posy, width, height, sizefactor
+
+        gf.windowSetup(self, posx + 10, posy + 10, width, height, pypath, 'CityEnrich - Cooling Schedules')
+
+        # creating main layout
+        self.vbox = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.vbox)
+
+        gf.load_banner(self, os.path.join(pypath, r'pictures\e3dHeader.png'), sizefactor)
+
+        # grid layout for file selection
+        self.uGrid = QtWidgets.QGridLayout()
+
+        self.vbox.addLayout(self.uGrid)
+
+        self.gB_cooling_schedules = QtWidgets.QGroupBox('Cooling Schedules')
+        self.vbox.addWidget(self.gB_cooling_schedules)
+        self.vBox_forcooling = QtWidgets.QVBoxLayout()
+        self.gB_cooling_schedules.setLayout(self.vBox_forcooling)
+
+        # # walls enrichment
+        self.gB_cooling_parameters = QtWidgets.QGroupBox('')
+        self.vBox_forcooling.addWidget(self.gB_cooling_parameters)
+        #
+        self.coolingGrid = QtWidgets.QGridLayout()
+        self.gB_cooling_parameters.setLayout(self.coolingGrid)
+        #
+
+        self.lbl_date_begin_cooling = QtWidgets.QLabel('Start Date:')
+        self.coolingGrid.addWidget(self.lbl_date_begin_cooling, 0, 0, 1, 1)
+
+        self.txt_date_begin_cooling = QtWidgets.QLineEdit('') #ToDo: Add calander selection (Simon)
+        self.coolingGrid.addWidget(self.txt_date_begin_cooling, 0, 1, 1, 1)
+
+        self.lbl_date_end_cooling = QtWidgets.QLabel('End Date:')
+        self.coolingGrid.addWidget(self.lbl_date_end_cooling, 0, 2, 1, 1)
+
+        self.txt_date_end_cooling = QtWidgets.QLineEdit('')  # ToDo: Add calander selection (Simon)
+        self.coolingGrid.addWidget(self.txt_date_end_cooling, 0, 3, 1, 1)
+
+        self.lbl_hour_begin_cooling = QtWidgets.QLabel('Begin Hour:')
+        self.coolingGrid.addWidget(self.lbl_hour_begin_cooling, 1, 0, 1, 1)
+
+        self.txt_hour_begin_cooling = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.coolingGrid.addWidget(self.txt_hour_begin_cooling, 1, 1, 1, 1)
+
+        self.lbl_hour_end_cooling = QtWidgets.QLabel('End Hour:')
+        self.coolingGrid.addWidget(self.lbl_hour_end_cooling, 1, 2, 1, 1)
+
+        self.txt_hour_end_cooling = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.coolingGrid.addWidget(self.txt_hour_end_cooling, 1, 3, 1, 1)
+
+        self.lbl_time_interval_cooling = QtWidgets.QLabel('Time Interval and Unit') # ToDo: (Max) do we make the unit separate?
+        self.coolingGrid.addWidget(self.lbl_time_interval_cooling, 2, 0, 1, 1)
+
+        self.txt_time_interval_cooling = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.coolingGrid.addWidget(self.txt_time_interval_cooling, 2, 1, 1, 1)
+
+        self.lbl_acquisition_method_cooling = QtWidgets.QLabel('Acquisition Method:')
+        self.coolingGrid.addWidget(self.lbl_acquisition_method_cooling, 2, 2, 1, 1)
+
+        self.txt_acquisition_method_cooling = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.coolingGrid.addWidget(self.txt_acquisition_method_cooling, 2, 3, 1, 1)
+
+        self.lbl_interpolation_type_cooling = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
+        self.coolingGrid.addWidget(self.lbl_interpolation_type_cooling, 3, 0, 1, 1)
+
+        self.txt_interpolation_cooling = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
+        self.coolingGrid.addWidget(self.txt_interpolation_cooling, 3, 1, 1, 1)
+
+        self.lbl_thematic_description_cooling = QtWidgets.QLabel('Thematic Description:')
+        self.coolingGrid.addWidget(self.lbl_thematic_description_cooling, 3, 2, 1, 1)
+
+        self.txt_thematic_description_cooling = QtWidgets.QLineEdit('')  # ToDo: (Max) what do wanna add here?
+        self.coolingGrid.addWidget(self.txt_thematic_description_cooling, 3, 3, 1, 1)
+
+        # self.lbl_daytype = QtWidgets.QLabel('')  # ToDo: (Max) do we make the unit separate?
+        # self.heatingGrid.addWidget(self.lbl_daytype, 4, 0, 1, 1)
+
+        self.radio_weekdaytype_cooling = QtWidgets.QRadioButton('Weekday')
+        self.coolingGrid.addWidget(self.radio_weekdaytype_cooling, 4, 0, 1, 1)
+
+        self.radio_weekendtype_cooling = QtWidgets.QRadioButton('Weekend')
+        self.coolingGrid.addWidget(self.radio_weekendtype_cooling, 4, 1, 1, 1)
+
+        self.btn_select_cooling = QtWidgets.QPushButton('Select Values')  # ToDo: (Max) do we make the unit separate?
+        self.coolingGrid.addWidget(self.btn_select_cooling, 4, 2, 1, 1)
+
+        self.txt_path_select_values_cooling = QtWidgets.QLineEdit('')
+        self.coolingGrid.addWidget(self.txt_path_select_values_cooling, 4, 3, 1, 1)
+
+        self.lbl_unit_cooling = QtWidgets.QLabel('Unit:')
+        self.coolingGrid.addWidget(self.lbl_unit_cooling, 5, 0, 1, 1)
+
+        self.txt_unit_cooling = QtWidgets.QLineEdit('') # ToDo: (Max) Dropdown?
+        self.coolingGrid.addWidget(self.txt_unit_cooling, 5, 1, 1, 1)
+
+        self.radio_SIunit_cooling = QtWidgets.QRadioButton('SI')
+        self.coolingGrid.addWidget(self.radio_SIunit_cooling, 5, 2, 1, 1)
+
+        self.radio_fraction_unit_cooling = QtWidgets.QRadioButton('Fraction')
+        self.coolingGrid.addWidget(self.radio_fraction_unit_cooling, 5, 3, 1, 1)
+        self.l2Grid_cooling = QtWidgets.QGridLayout()
+
+        self.btn_save_cooling = QtWidgets.QPushButton('Save')  # ToDo: (Simon) Add functionalities to save
+        self.l2Grid_cooling.addWidget(self.btn_save_cooling, 0, 0, 1, 1)
+
+        self.btn_reset_cooling = QtWidgets.QPushButton('Reset')  # ToDo: (Simon) Add functionalities to reset
+        self.l2Grid_cooling.addWidget(self.btn_reset_cooling, 0, 1, 1, 1)
+
+        self.btn_exit_cooling = QtWidgets.QPushButton('Exit')
+        self.l2Grid_cooling.addWidget(self.btn_exit_cooling, 0, 2, 1, 1)
+
+        self.btn_back_cooling = QtWidgets.QPushButton('Back')  # ToDo: (Simon) Add functionalities to back
+        self.l2Grid_cooling.addWidget(self.btn_back_cooling, 0, 3, 1, 1)
+
+        self.vbox.addLayout(self.l2Grid_cooling)
+
+        # self.btn_save.clicked.connect(self.func_about)
+        # self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_exit_cooling.clicked.connect(self.func_exit)
+        # self.btn_back.clicked.connect(self.func_back)
+
+        # def func_about(self):
+        #     global posx, posy
+        #     posx, posy = gf.dimensions(self)
+        #     gf.next_window(self, about(), False)
+
+    def func_exit(self):
+        gf.close_application(self)
+
+class ventilation_schedules(QtWidgets.QWidget):
+    def __init__(self):
+        super(ventilation_schedules, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        global posx, posy, width, height, sizefactor
+
+        gf.windowSetup(self, posx + 10, posy + 10, width, height, pypath, 'CityEnrich - Ventilation Schedules')
+
+        # creating main layout
+        self.vbox = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.vbox)
+
+        gf.load_banner(self, os.path.join(pypath, r'pictures\e3dHeader.png'), sizefactor)
+
+        # grid layout for file selection
+        self.uGrid = QtWidgets.QGridLayout()
+
+        self.vbox.addLayout(self.uGrid)
+
+        self.gB_ventilation_schedules = QtWidgets.QGroupBox('Ventilation Schedules')
+        self.vbox.addWidget(self.gB_ventilation_schedules)
+        self.vBox_forventilation = QtWidgets.QVBoxLayout()
+        self.gB_ventilation_schedules.setLayout(self.vBox_forventilation)
+
+        # # walls enrichment
+        self.gB_ventilation_parameters = QtWidgets.QGroupBox('')
+        self.vBox_forventilation.addWidget(self.gB_ventilation_parameters)
+        #
+        self.ventilationGrid = QtWidgets.QGridLayout()
+        self.gB_ventilation_parameters.setLayout(self.ventilationGrid)
+        #
+
+        self.lbl_date_begin_ventilation = QtWidgets.QLabel('Start Date:')
+        self.ventilationGrid.addWidget(self.lbl_date_begin_ventilation, 0, 0, 1, 1)
+
+        self.txt_date_begin_ventilation = QtWidgets.QLineEdit('') #ToDo: Add calander selection (Simon)
+        self.ventilationGrid.addWidget(self.txt_date_begin_ventilation, 0, 1, 1, 1)
+
+        self.lbl_date_end_ventilation = QtWidgets.QLabel('End Date:')
+        self.ventilationGrid.addWidget(self.lbl_date_end_ventilation, 0, 2, 1, 1)
+
+        self.txt_date_end_ventilation = QtWidgets.QLineEdit('')  # ToDo: Add calander selection (Simon)
+        self.ventilationGrid.addWidget(self.txt_date_end_ventilation, 0, 3, 1, 1)
+
+        self.lbl_hour_begin_ventilation = QtWidgets.QLabel('Begin Hour:')
+        self.ventilationGrid.addWidget(self.lbl_hour_begin_ventilation, 1, 0, 1, 1)
+
+        self.txt_hour_begin_ventilation = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.ventilationGrid.addWidget(self.txt_hour_begin_ventilation, 1, 1, 1, 1)
+
+        self.lbl_hour_end_ventilation = QtWidgets.QLabel('End Hour:')
+        self.ventilationGrid.addWidget(self.lbl_hour_end_ventilation, 1, 2, 1, 1)
+
+        self.txt_hour_end_ventilation = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.ventilationGrid.addWidget(self.txt_hour_end_ventilation, 1, 3, 1, 1)
+
+        self.lbl_time_interval_ventilation = QtWidgets.QLabel('Time Interval and Unit') # ToDo: (Max) do we make the unit separate?
+        self.ventilationGrid.addWidget(self.lbl_time_interval_ventilation, 2, 0, 1, 1)
+
+        self.txt_time_interval_ventilation = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.ventilationGrid.addWidget(self.txt_time_interval_ventilation, 2, 1, 1, 1)
+
+        self.lbl_acquisition_method_ventilation = QtWidgets.QLabel('Acquisition Method:')
+        self.ventilationGrid.addWidget(self.lbl_acquisition_method_ventilation, 2, 2, 1, 1)
+
+        self.txt_acquisition_method_ventilation = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.ventilationGrid.addWidget(self.txt_acquisition_method_ventilation, 2, 3, 1, 1)
+
+        self.lbl_interpolation_type_ventilation = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
+        self.ventilationGrid.addWidget(self.lbl_interpolation_type_ventilation, 3, 0, 1, 1)
+
+        self.txt_interpolation_ventilation = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
+        self.ventilationGrid.addWidget(self.txt_interpolation_ventilation, 3, 1, 1, 1)
+
+        self.lbl_thematic_description_ventilation = QtWidgets.QLabel('Thematic Description:')
+        self.ventilationGrid.addWidget(self.lbl_thematic_description_ventilation, 3, 2, 1, 1)
+
+        self.txt_thematic_description_ventilation = QtWidgets.QLineEdit('')  # ToDo: (Max) what do wanna add here?
+        self.ventilationGrid.addWidget(self.txt_thematic_description_ventilation, 3, 3, 1, 1)
+
+        # self.lbl_daytype = QtWidgets.QLabel('')  # ToDo: (Max) do we make the unit separate?
+        # self.heatingGrid.addWidget(self.lbl_daytype, 4, 0, 1, 1)
+
+        self.radio_weekdaytype_ventilation = QtWidgets.QRadioButton('Weekday')
+        self.ventilationGrid.addWidget(self.radio_weekdaytype_ventilation, 4, 0, 1, 1)
+
+        self.radio_weekendtype_ventilation = QtWidgets.QRadioButton('Weekend')
+        self.ventilationGrid.addWidget(self.radio_weekendtype_ventilation, 4, 1, 1, 1)
+
+        self.btn_select_ventilation = QtWidgets.QPushButton('Select Values')  # ToDo: (Max) do we make the unit separate?
+        self.ventilationGrid.addWidget(self.btn_select_ventilation, 4, 2, 1, 1)
+
+        self.txt_path_select_values_ventilation = QtWidgets.QLineEdit('')
+        self.ventilationGrid.addWidget(self.txt_path_select_values_ventilation, 4, 3, 1, 1)
+
+        self.lbl_unit_ventilation = QtWidgets.QLabel('Unit:')
+        self.ventilationGrid.addWidget(self.lbl_unit_ventilation, 5, 0, 1, 1)
+
+        self.txt_unit_ventilation = QtWidgets.QLineEdit('') # ToDo: (Max) Dropdown?
+        self.ventilationGrid.addWidget(self.txt_unit_ventilation, 5, 1, 1, 1)
+
+        self.radio_SIunit_ventilation = QtWidgets.QRadioButton('SI')
+        self.ventilationGrid.addWidget(self.radio_SIunit_ventilation, 5, 2, 1, 1)
+
+        self.radio_fraction_unit_ventilation = QtWidgets.QRadioButton('Fraction')
+        self.ventilationGrid.addWidget(self.radio_fraction_unit_ventilation, 5, 3, 1, 1)
+        self.l2Grid_ventilation = QtWidgets.QGridLayout()
+
+        self.btn_save_ventilation = QtWidgets.QPushButton('Save')  # ToDo: (Simon) Add functionalities to save
+        self.l2Grid_ventilation.addWidget(self.btn_save_ventilation, 0, 0, 1, 1)
+
+        self.btn_reset_ventilation = QtWidgets.QPushButton('Reset')  # ToDo: (Simon) Add functionalities to reset
+        self.l2Grid_ventilation.addWidget(self.btn_reset_ventilation, 0, 1, 1, 1)
+
+        self.btn_exit_ventilation = QtWidgets.QPushButton('Exit')
+        self.l2Grid_ventilation.addWidget(self.btn_exit_ventilation, 0, 2, 1, 1)
+
+        self.btn_back_ventilation = QtWidgets.QPushButton('Back')  # ToDo: (Simon) Add functionalities to back
+        self.l2Grid_ventilation.addWidget(self.btn_back_ventilation, 0, 3, 1, 1)
+
+        self.vbox.addLayout(self.l2Grid_ventilation)
+
+        # self.btn_save.clicked.connect(self.func_about)
+        # self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_exit_ventilation.clicked.connect(self.func_exit)
+        # self.btn_back.clicked.connect(self.func_back)
+
+        # def func_about(self):
+        #     global posx, posy
+        #     posx, posy = gf.dimensions(self)
+        #     gf.next_window(self, about(), False)
+
+    def func_exit(self):
+        gf.close_application(self)
+
+class occupancy_schedules(QtWidgets.QWidget):
+    def __init__(self):
+        super(occupancy_schedules, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        global posx, posy, width, height, sizefactor
+
+        gf.windowSetup(self, posx + 10, posy + 10, width, height, pypath, 'CityEnrich - Occupancy Schedules')
+
+        # creating main layout
+        self.vbox = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.vbox)
+
+        gf.load_banner(self, os.path.join(pypath, r'pictures\e3dHeader.png'), sizefactor)
+
+        # grid layout for file selection
+        self.uGrid = QtWidgets.QGridLayout()
+
+        self.vbox.addLayout(self.uGrid)
+
+        self.gB_occupancy_schedules = QtWidgets.QGroupBox('Occupancy Schedules')
+        self.vbox.addWidget(self.gB_occupancy_schedules)
+        self.vBox_foroccupancy = QtWidgets.QVBoxLayout()
+        self.gB_occupancy_schedules.setLayout(self.vBox_foroccupancy)
+
+        # # walls enrichment
+        self.gB_occupancy_parameters = QtWidgets.QGroupBox('')
+        self.vBox_foroccupancy.addWidget(self.gB_occupancy_parameters)
+        #
+        self.occupancyGrid = QtWidgets.QGridLayout()
+        self.gB_occupancy_parameters.setLayout(self.occupancyGrid)
+        #
+
+        self.lbl_date_begin_occupancy = QtWidgets.QLabel('Start Date:')
+        self.occupancyGrid.addWidget(self.lbl_date_begin_occupancy, 0, 0, 1, 1)
+
+        self.txt_date_begin_occupancy = QtWidgets.QLineEdit('') #ToDo: Add calander selection (Simon)
+        self.occupancyGrid.addWidget(self.txt_date_begin_occupancy, 0, 1, 1, 1)
+
+        self.lbl_date_end_occupancy = QtWidgets.QLabel('End Date:')
+        self.occupancyGrid.addWidget(self.lbl_date_end_occupancy, 0, 2, 1, 1)
+
+        self.txt_date_end_occupancy = QtWidgets.QLineEdit('')  # ToDo: Add calander selection (Simon)
+        self.occupancyGrid.addWidget(self.txt_date_end_occupancy, 0, 3, 1, 1)
+
+        self.lbl_hour_begin_occupancy = QtWidgets.QLabel('Begin Hour:')
+        self.occupancyGrid.addWidget(self.lbl_hour_begin_occupancy, 1, 0, 1, 1)
+
+        self.txt_hour_begin_occupancy = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.occupancyGrid.addWidget(self.txt_hour_begin_occupancy, 1, 1, 1, 1)
+
+        self.lbl_hour_end_occupancy = QtWidgets.QLabel('End Hour:')
+        self.occupancyGrid.addWidget(self.lbl_hour_end_occupancy, 1, 2, 1, 1)
+
+        self.txt_hour_end_occupancy = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.occupancyGrid.addWidget(self.txt_hour_end_occupancy, 1, 3, 1, 1)
+
+        self.lbl_time_interval_occupancy = QtWidgets.QLabel('Time Interval and Unit') # ToDo: (Max) do we make the unit separate?
+        self.occupancyGrid.addWidget(self.lbl_time_interval_occupancy, 2, 0, 1, 1)
+
+        self.txt_time_interval_occupancy = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.occupancyGrid.addWidget(self.txt_time_interval_occupancy, 2, 1, 1, 1)
+
+        self.lbl_acquisition_method_occupancy = QtWidgets.QLabel('Acquisition Method:')
+        self.occupancyGrid.addWidget(self.lbl_acquisition_method_occupancy, 2, 2, 1, 1)
+
+        self.txt_acquisition_method_occupancy = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.occupancyGrid.addWidget(self.txt_acquisition_method_occupancy, 2, 3, 1, 1)
+
+        self.lbl_interpolation_type_occupancy = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
+        self.occupancyGrid.addWidget(self.lbl_interpolation_type_occupancy, 3, 0, 1, 1)
+
+        self.txt_interpolation_occupancy = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
+        self.occupancyGrid.addWidget(self.txt_interpolation_occupancy, 3, 1, 1, 1)
+
+        self.lbl_thematic_description_occupancy = QtWidgets.QLabel('Thematic Description:')
+        self.occupancyGrid.addWidget(self.lbl_thematic_description_occupancy, 3, 2, 1, 1)
+
+        self.txt_thematic_description_occupancy = QtWidgets.QLineEdit('')  # ToDo: (Max) what do wanna add here?
+        self.occupancyGrid.addWidget(self.txt_thematic_description_occupancy, 3, 3, 1, 1)
+
+        # self.lbl_daytype = QtWidgets.QLabel('')  # ToDo: (Max) do we make the unit separate?
+        # self.heatingGrid.addWidget(self.lbl_daytype, 4, 0, 1, 1)
+
+        self.radio_weekdaytype_occupancy = QtWidgets.QRadioButton('Weekday')
+        self.occupancyGrid.addWidget(self.radio_weekdaytype_occupancy, 4, 0, 1, 1)
+
+        self.radio_weekendtype_occupancy = QtWidgets.QRadioButton('Weekend')
+        self.occupancyGrid.addWidget(self.radio_weekendtype_occupancy, 4, 1, 1, 1)
+
+        self.btn_select_occupancy = QtWidgets.QPushButton('Select Values')  # ToDo: (Max) do we make the unit separate?
+        self.occupancyGrid.addWidget(self.btn_select_occupancy, 4, 2, 1, 1)
+
+        self.txt_path_select_values_occupancy = QtWidgets.QLineEdit('')
+        self.occupancyGrid.addWidget(self.txt_path_select_values_occupancy, 4, 3, 1, 1)
+
+        self.lbl_unit_occupancy = QtWidgets.QLabel('Unit:')
+        self.occupancyGrid.addWidget(self.lbl_unit_occupancy, 5, 0, 1, 1)
+
+        self.txt_unit_occupancy = QtWidgets.QLineEdit('') # ToDo: (Max) Dropdown?
+        self.occupancyGrid.addWidget(self.txt_unit_occupancy, 5, 1, 1, 1)
+
+        self.radio_SIunit_occupancy = QtWidgets.QRadioButton('SI')
+        self.occupancyGrid.addWidget(self.radio_SIunit_occupancy, 5, 2, 1, 1)
+
+        self.radio_fraction_unit_occupancy = QtWidgets.QRadioButton('Fraction')
+        self.occupancyGrid.addWidget(self.radio_fraction_unit_occupancy, 5, 3, 1, 1)
+        self.l2Grid_occupancy = QtWidgets.QGridLayout()
+
+        self.lbl_ConvectiveFraction_occupancy = QtWidgets.QLabel('Convective Fraction:')
+        self.occupancyGrid.addWidget(self.lbl_ConvectiveFraction_occupancy, 6, 0, 1, 1)
+
+        self.txt_ConvectiveFraction_occupancy = QtWidgets.QLineEdit('')
+        self.occupancyGrid.addWidget(self.txt_ConvectiveFraction_occupancy, 6, 1, 1, 1)
+
+        self.lbl_radiant_fraction_occupancy = QtWidgets.QLabel('Radiant Fraction:')
+        self.occupancyGrid.addWidget(self.lbl_radiant_fraction_occupancy, 6, 2, 1, 1)
+
+        self.txt_radiant_fraction_occupancy = QtWidgets.QLineEdit('')
+        self.occupancyGrid.addWidget(self.txt_thematic_description_occupancy, 6, 3, 1, 1)
+
+        self.lbl_totalValue_occupancy = QtWidgets.QLabel('Total Value:')
+        self.occupancyGrid.addWidget(self.lbl_totalValue_occupancy, 7, 0, 1, 1)
+
+        self.txt_totalValue_occupancy = QtWidgets.QLineEdit('')
+        self.occupancyGrid.addWidget(self.txt_totalValue_occupancy, 7, 1, 1, 1)
+
+        self.lbl_number_occupancy = QtWidgets.QLabel('Number of Occupants:')
+        self.occupancyGrid.addWidget(self.lbl_radiant_fraction_occupancy, 7, 2, 1, 1)
+
+        self.txt_number_occupancy = QtWidgets.QLineEdit('')
+        self.occupancyGrid.addWidget(self.txt_number_occupancy, 7, 3, 1, 1)
+
+
+        self.btn_save_occupancy = QtWidgets.QPushButton('Save')  # ToDo: (Simon) Add functionalities to save
+        self.l2Grid_occupancy.addWidget(self.btn_save_occupancy, 0, 0, 1, 1)
+
+        self.btn_reset_occupancy = QtWidgets.QPushButton('Reset')  # ToDo: (Simon) Add functionalities to reset
+        self.l2Grid_occupancy.addWidget(self.btn_reset_occupancy, 0, 1, 1, 1)
+
+        self.btn_exit_occupancy = QtWidgets.QPushButton('Exit')
+        self.l2Grid_occupancy.addWidget(self.btn_exit_occupancy, 0, 2, 1, 1)
+
+        self.btn_back_occupancy = QtWidgets.QPushButton('Back')  # ToDo: (Simon) Add functionalities to back
+        self.l2Grid_occupancy.addWidget(self.btn_back_occupancy, 0, 3, 1, 1)
+
+        self.vbox.addLayout(self.l2Grid_occupancy)
+
+        # self.btn_save.clicked.connect(self.func_about)
+        # self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_exit_occupancy.clicked.connect(self.func_exit)
+        # self.btn_back.clicked.connect(self.func_back)
+
+        # def func_about(self):
+        #     global posx, posy
+        #     posx, posy = gf.dimensions(self)
+        #     gf.next_window(self, about(), False)
+
+    def func_exit(self):
+        gf.close_application(self)
+
+class appliances_schedules(QtWidgets.QWidget):
+    def __init__(self):
+        super(appliances_schedules, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        global posx, posy, width, height, sizefactor
+
+        gf.windowSetup(self, posx + 10, posy + 10, width, height, pypath, 'CityEnrich - Appliances Schedules')
+
+        # creating main layout
+        self.vbox = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.vbox)
+
+        gf.load_banner(self, os.path.join(pypath, r'pictures\e3dHeader.png'), sizefactor)
+
+        # grid layout for file selection
+        self.uGrid = QtWidgets.QGridLayout()
+
+        self.vbox.addLayout(self.uGrid)
+
+        self.gB_appliances_schedules = QtWidgets.QGroupBox('Appliances Schedules')
+        self.vbox.addWidget(self.gB_appliances_schedules)
+        self.vBox_forappliances = QtWidgets.QVBoxLayout()
+        self.gB_appliances_schedules.setLayout(self.vBox_forappliances)
+
+        # # walls enrichment
+        self.gB_appliances_parameters = QtWidgets.QGroupBox('')
+        self.vBox_forappliances.addWidget(self.gB_appliances_parameters)
+        #
+        self.appliancesGrid = QtWidgets.QGridLayout()
+        self.gB_appliances_parameters.setLayout(self.appliancesGrid)
+        #
+
+        self.lbl_date_begin_appliances = QtWidgets.QLabel('Start Date:')
+        self.appliancesGrid.addWidget(self.lbl_date_begin_appliances, 0, 0, 1, 1)
+
+        self.txt_date_begin_appliances = QtWidgets.QLineEdit('') #ToDo: Add calander selection (Simon)
+        self.appliancesGrid.addWidget(self.txt_date_begin_appliances, 0, 1, 1, 1)
+
+        self.lbl_date_end_appliances = QtWidgets.QLabel('End Date:')
+        self.appliancesGrid.addWidget(self.lbl_date_end_appliances, 0, 2, 1, 1)
+
+        self.txt_date_end_appliances = QtWidgets.QLineEdit('')  # ToDo: Add calander selection (Simon)
+        self.appliancesGrid.addWidget(self.txt_date_end_appliances, 0, 3, 1, 1)
+
+        self.lbl_hour_begin_appliances = QtWidgets.QLabel('Begin Hour:')
+        self.appliancesGrid.addWidget(self.lbl_hour_begin_appliances, 1, 0, 1, 1)
+
+        self.txt_hour_begin_appliances = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.appliancesGrid.addWidget(self.txt_hour_begin_appliances, 1, 1, 1, 1)
+
+        self.lbl_hour_end_appliances = QtWidgets.QLabel('End Hour:')
+        self.appliancesGrid.addWidget(self.lbl_hour_end_appliances, 1, 2, 1, 1)
+
+        self.txt_hour_end_appliances = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.appliancesGrid.addWidget(self.txt_hour_end_appliances, 1, 3, 1, 1)
+
+        self.lbl_time_interval_appliances = QtWidgets.QLabel('Time Interval and Unit') # ToDo: (Max) do we make the unit separate?
+        self.appliancesGrid.addWidget(self.lbl_time_interval_appliances, 2, 0, 1, 1)
+
+        self.txt_time_interval_appliances = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.appliancesGrid.addWidget(self.txt_time_interval_appliances, 2, 1, 1, 1)
+
+        self.lbl_acquisition_method_appliances = QtWidgets.QLabel('Acquisition Method:')
+        self.appliancesGrid.addWidget(self.lbl_acquisition_method_appliances, 2, 2, 1, 1)
+
+        self.txt_acquisition_method_appliances = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.appliancesGrid.addWidget(self.txt_acquisition_method_appliances, 2, 3, 1, 1)
+
+        self.lbl_interpolation_type_appliances = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
+        self.appliancesGrid.addWidget(self.lbl_interpolation_type_appliances, 3, 0, 1, 1)
+
+        self.txt_interpolation_appliances = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
+        self.appliancesGrid.addWidget(self.txt_interpolation_appliances, 3, 1, 1, 1)
+
+        self.lbl_thematic_description_appliances = QtWidgets.QLabel('Thematic Description:')
+        self.appliancesGrid.addWidget(self.lbl_thematic_description_appliances, 3, 2, 1, 1)
+
+        self.txt_thematic_description_appliances = QtWidgets.QLineEdit('')  # ToDo: (Max) what do wanna add here?
+        self.appliancesGrid.addWidget(self.txt_thematic_description_appliances, 3, 3, 1, 1)
+
+        # self.lbl_daytype = QtWidgets.QLabel('')  # ToDo: (Max) do we make the unit separate?
+        # self.heatingGrid.addWidget(self.lbl_daytype, 4, 0, 1, 1)
+
+        self.radio_weekdaytype_appliances = QtWidgets.QRadioButton('Weekday')
+        self.appliancesGrid.addWidget(self.radio_weekdaytype_appliances, 4, 0, 1, 1)
+
+        self.radio_weekendtype_appliances = QtWidgets.QRadioButton('Weekend')
+        self.appliancesGrid.addWidget(self.radio_weekendtype_appliances, 4, 1, 1, 1)
+
+        self.btn_select_appliances = QtWidgets.QPushButton('Select Values')  # ToDo: (Max) do we make the unit separate?
+        self.appliancesGrid.addWidget(self.btn_select_appliances, 4, 2, 1, 1)
+
+        self.txt_path_select_values_appliances = QtWidgets.QLineEdit('')
+        self.appliancesGrid.addWidget(self.txt_path_select_values_appliances, 4, 3, 1, 1)
+
+        self.lbl_unit_appliances = QtWidgets.QLabel('Unit:')
+        self.appliancesGrid.addWidget(self.lbl_unit_appliances, 5, 0, 1, 1)
+
+        self.txt_unit_appliances = QtWidgets.QLineEdit('') # ToDo: (Max) Dropdown?
+        self.appliancesGrid.addWidget(self.txt_unit_appliances, 5, 1, 1, 1)
+
+        self.radio_SIunit_appliances = QtWidgets.QRadioButton('SI')
+        self.appliancesGrid.addWidget(self.radio_SIunit_appliances, 5, 2, 1, 1)
+
+        self.radio_fraction_unit_appliances = QtWidgets.QRadioButton('Fraction')
+        self.appliancesGrid.addWidget(self.radio_fraction_unit_appliances, 5, 3, 1, 1)
+
+
+        self.lbl_ConvectiveFraction_appliances = QtWidgets.QLabel('Convective Fraction:')
+        self.appliancesGrid.addWidget(self.lbl_ConvectiveFraction_appliances, 6, 0, 1, 1)
+
+        self.txt_ConvectiveFraction_appliances = QtWidgets.QLineEdit('')
+        self.appliancesGrid.addWidget(self.txt_ConvectiveFraction_appliances, 6, 1, 1, 1)
+
+        self.lbl_radiant_fraction_appliances = QtWidgets.QLabel('Radiant Fraction:')
+        self.appliancesGrid.addWidget(self.lbl_radiant_fraction_appliances, 6, 2, 1, 1)
+
+        self.txt_radiant_fraction_appliances = QtWidgets.QLineEdit('')
+        self.appliancesGrid.addWidget(self.txt_thematic_description_appliances, 6, 3, 1, 1)
+
+        self.lbl_totalValue_appliances = QtWidgets.QLabel('Total Value:')
+        self.appliancesGrid.addWidget(self.lbl_totalValue_appliances, 7, 0, 1, 1)
+
+        self.txt_totalValue_appliances = QtWidgets.QLineEdit('')
+        self.appliancesGrid.addWidget(self.txt_totalValue_appliances, 7, 1, 1, 1)
+
+        self.l2Grid_appliances = QtWidgets.QGridLayout()
+
+        self.btn_save_appliances = QtWidgets.QPushButton('Save')  # ToDo: (Simon) Add functionalities to save
+        self.l2Grid_appliances.addWidget(self.btn_save_appliances, 0, 0, 1, 1)
+
+        self.btn_reset_appliances = QtWidgets.QPushButton('Reset')  # ToDo: (Simon) Add functionalities to reset
+        self.l2Grid_appliances.addWidget(self.btn_reset_appliances, 0, 1, 1, 1)
+
+        self.btn_exit_appliances = QtWidgets.QPushButton('Exit')
+        self.l2Grid_appliances.addWidget(self.btn_exit_appliances, 0, 2, 1, 1)
+
+        self.btn_back_appliances = QtWidgets.QPushButton('Back')  # ToDo: (Simon) Add functionalities to back
+        self.l2Grid_appliances.addWidget(self.btn_back_appliances, 0, 3, 1, 1)
+
+        self.vbox.addLayout(self.l2Grid_appliances)
+
+        # self.btn_save.clicked.connect(self.func_about)
+        # self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_exit_appliances.clicked.connect(self.func_exit)
+        # self.btn_back.clicked.connect(self.func_back)
+
+        # def func_about(self):
+        #     global posx, posy
+        #     posx, posy = gf.dimensions(self)
+        #     gf.next_window(self, about(), False)
+
+    def func_exit(self):
+        gf.close_application(self)
+
+class lighting_schedules(QtWidgets.QWidget):
+    def __init__(self):
+        super(lighting_schedules, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        global posx, posy, width, height, sizefactor
+
+        gf.windowSetup(self, posx + 10, posy + 10, width, height, pypath, 'CityEnrich - Lighting Schedules')
+
+        # creating main layout
+        self.vbox = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.vbox)
+
+        gf.load_banner(self, os.path.join(pypath, r'pictures\e3dHeader.png'), sizefactor)
+
+        # grid layout for file selection
+        self.uGrid = QtWidgets.QGridLayout()
+
+        self.vbox.addLayout(self.uGrid)
+
+        self.gB_lighting_schedules = QtWidgets.QGroupBox('Lighting Schedules')
+        self.vbox.addWidget(self.gB_lighting_schedules)
+        self.vBox_forlighting = QtWidgets.QVBoxLayout()
+        self.gB_lighting_schedules.setLayout(self.vBox_forlighting)
+
+        # # walls enrichment
+        self.gB_lighting_parameters = QtWidgets.QGroupBox('')
+        self.vBox_forlighting.addWidget(self.gB_lighting_parameters)
+        #
+        self.lightingGrid = QtWidgets.QGridLayout()
+        self.gB_lighting_parameters.setLayout(self.lightingGrid)
+        #
+
+        self.lbl_date_begin_lighting = QtWidgets.QLabel('Start Date:')
+        self.lightingGrid.addWidget(self.lbl_date_begin_lighting, 0, 0, 1, 1)
+
+        self.txt_date_begin_lighting = QtWidgets.QLineEdit('') #ToDo: Add calander selection (Simon)
+        self.lightingGrid.addWidget(self.txt_date_begin_lighting, 0, 1, 1, 1)
+
+        self.lbl_date_end_lighting = QtWidgets.QLabel('End Date:')
+        self.lightingGrid.addWidget(self.lbl_date_end_lighting, 0, 2, 1, 1)
+
+        self.txt_date_end_lighting = QtWidgets.QLineEdit('')  # ToDo: Add calander selection (Simon)
+        self.lightingGrid.addWidget(self.txt_date_end_lighting, 0, 3, 1, 1)
+
+        self.lbl_hour_begin_lighting = QtWidgets.QLabel('Begin Hour:')
+        self.lightingGrid.addWidget(self.lbl_hour_begin_lighting, 1, 0, 1, 1)
+
+        self.txt_hour_begin_lighting = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.lightingGrid.addWidget(self.txt_hour_begin_lighting, 1, 1, 1, 1)
+
+        self.lbl_hour_end_lighting = QtWidgets.QLabel('End Hour:')
+        self.lightingGrid.addWidget(self.lbl_hour_end_lighting, 1, 2, 1, 1)
+
+        self.txt_hour_end_lighting = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.lightingGrid.addWidget(self.txt_hour_end_lighting, 1, 3, 1, 1)
+
+        self.lbl_time_interval_lighting = QtWidgets.QLabel('Time Interval and Unit') # ToDo: (Max) do we make the unit separate?
+        self.lightingGrid.addWidget(self.lbl_time_interval_lighting, 2, 0, 1, 1)
+
+        self.txt_time_interval_lighting = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.lightingGrid.addWidget(self.txt_time_interval_lighting, 2, 1, 1, 1)
+
+        self.lbl_acquisition_method_lighting = QtWidgets.QLabel('Acquisition Method:')
+        self.lightingGrid.addWidget(self.lbl_acquisition_method_lighting, 2, 2, 1, 1)
+
+        self.txt_acquisition_method_lighting = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.lightingGrid.addWidget(self.txt_acquisition_method_lighting, 2, 3, 1, 1)
+
+        self.lbl_interpolation_type_lighting = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
+        self.lightingGrid.addWidget(self.lbl_interpolation_type_lighting, 3, 0, 1, 1)
+
+        self.txt_interpolation_lighting = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
+        self.lightingGrid.addWidget(self.txt_interpolation_lighting, 3, 1, 1, 1)
+
+        self.lbl_thematic_description_lighting = QtWidgets.QLabel('Thematic Description:')
+        self.lightingGrid.addWidget(self.lbl_thematic_description_lighting, 3, 2, 1, 1)
+
+        self.txt_thematic_description_lighting = QtWidgets.QLineEdit('')  # ToDo: (Max) what do wanna add here?
+        self.lightingGrid.addWidget(self.txt_thematic_description_lighting, 3, 3, 1, 1)
+
+        # self.lbl_daytype = QtWidgets.QLabel('')  # ToDo: (Max) do we make the unit separate?
+        # self.heatingGrid.addWidget(self.lbl_daytype, 4, 0, 1, 1)
+
+        self.radio_weekdaytype_lighting = QtWidgets.QRadioButton('Weekday')
+        self.lightingGrid.addWidget(self.radio_weekdaytype_lighting, 4, 0, 1, 1)
+
+        self.radio_weekendtype_lighting = QtWidgets.QRadioButton('Weekend')
+        self.lightingGrid.addWidget(self.radio_weekendtype_lighting, 4, 1, 1, 1)
+
+        self.btn_select_lighting = QtWidgets.QPushButton('Select Values')  # ToDo: (Max) do we make the unit separate?
+        self.lightingGrid.addWidget(self.btn_select_lighting, 4, 2, 1, 1)
+
+        self.txt_path_select_values_lighting = QtWidgets.QLineEdit('')
+        self.lightingGrid.addWidget(self.txt_path_select_values_lighting, 4, 3, 1, 1)
+
+        self.lbl_unit_lighting = QtWidgets.QLabel('Unit:')
+        self.lightingGrid.addWidget(self.lbl_unit_lighting, 5, 0, 1, 1)
+
+        self.txt_unit_lighting = QtWidgets.QLineEdit('') # ToDo: (Max) Dropdown?
+        self.lightingGrid.addWidget(self.txt_unit_lighting, 5, 1, 1, 1)
+
+        self.radio_SIunit_lighting = QtWidgets.QRadioButton('SI')
+        self.lightingGrid.addWidget(self.radio_SIunit_lighting, 5, 2, 1, 1)
+
+        self.radio_fraction_unit_lighting = QtWidgets.QRadioButton('Fraction')
+        self.lightingGrid.addWidget(self.radio_fraction_unit_lighting, 5, 3, 1, 1)
+
+
+        self.lbl_ConvectiveFraction_lighting = QtWidgets.QLabel('Convective Fraction:')
+        self.lightingGrid.addWidget(self.lbl_ConvectiveFraction_lighting, 6, 0, 1, 1)
+
+        self.txt_ConvectiveFraction_lighting = QtWidgets.QLineEdit('')
+        self.lightingGrid.addWidget(self.txt_ConvectiveFraction_lighting, 6, 1, 1, 1)
+
+        self.lbl_radiant_fraction_lighting = QtWidgets.QLabel('Radiant Fraction:')
+        self.lightingGrid.addWidget(self.lbl_radiant_fraction_lighting, 6, 2, 1, 1)
+
+        self.txt_radiant_fraction_lighting = QtWidgets.QLineEdit('')
+        self.lightingGrid.addWidget(self.txt_thematic_description_lighting, 6, 3, 1, 1)
+
+        self.lbl_totalValue_lighting = QtWidgets.QLabel('Total Value:')
+        self.lightingGrid.addWidget(self.lbl_totalValue_lighting, 7, 0, 1, 1)
+
+        self.txt_totalValue_lighting = QtWidgets.QLineEdit('')
+        self.lightingGrid.addWidget(self.txt_totalValue_lighting, 7, 1, 1, 1)
+
+        self.l2Grid_lighting = QtWidgets.QGridLayout()
+
+        self.btn_save_lighting = QtWidgets.QPushButton('Save')  # ToDo: (Simon) Add functionalities to save
+        self.l2Grid_lighting.addWidget(self.btn_save_lighting, 0, 0, 1, 1)
+
+        self.btn_reset_lighting = QtWidgets.QPushButton('Reset')  # ToDo: (Simon) Add functionalities to reset
+        self.l2Grid_lighting.addWidget(self.btn_reset_lighting, 0, 1, 1, 1)
+
+        self.btn_exit_lighting = QtWidgets.QPushButton('Exit')
+        self.l2Grid_lighting.addWidget(self.btn_exit_lighting, 0, 2, 1, 1)
+
+        self.btn_back_lighting = QtWidgets.QPushButton('Back')  # ToDo: (Simon) Add functionalities to back
+        self.l2Grid_lighting.addWidget(self.btn_back_lighting, 0, 3, 1, 1)
+
+        self.vbox.addLayout(self.l2Grid_lighting)
+
+        # self.btn_save.clicked.connect(self.func_about)
+        # self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_exit_lighting.clicked.connect(self.func_exit)
+        # self.btn_back.clicked.connect(self.func_back)
+
+        # def func_about(self):
+        #     global posx, posy
+        #     posx, posy = gf.dimensions(self)
+        #     gf.next_window(self, about(), False)
+
+    def func_exit(self):
+        gf.close_application(self)
+
+
 
 
 class about(QtWidgets.QWidget):
