@@ -864,11 +864,11 @@ class thermalzones(QtWidgets.QWidget):
         self.aGrid = QtWidgets.QGridLayout()
         self.gB_usagezone.setLayout(self.aGrid)
 
-        self.btn_zone = QtWidgets.QPushButton('Heating')
-        self.aGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
+        self.btn_heating = QtWidgets.QPushButton('Heating')
+        self.aGrid.addWidget(self.btn_heating, 0, 0, 1, 1)
 
-        self.btn_walls = QtWidgets.QPushButton('Cooling')
-        self.aGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
+        self.btn_cooling = QtWidgets.QPushButton('Cooling')
+        self.aGrid.addWidget(self.btn_cooling, 0, 1, 1, 1)
 
         self.btn_occupancy = QtWidgets.QPushButton('Ventilation')
         self.aGrid.addWidget(self.btn_occupancy, 1, 0, 1, 1)
@@ -893,6 +893,7 @@ class thermalzones(QtWidgets.QWidget):
 
         self.vbox.addLayout(self.l2Grid)
 
+        self.btn_heating.clicked.connect(self.func_heating_schedules)
         self.btn_about.clicked.connect(self.func_about)
         # self.btn_reset.clicked.connect(self.func_reset)
         self.btn_exit.clicked.connect(self.func_exit)
@@ -902,6 +903,11 @@ class thermalzones(QtWidgets.QWidget):
         global posx, posy
         posx, posy = gf.dimensions(self)
         gf.next_window(self, about(), False)
+
+    def func_heating_schedules(self):
+        global posx, posy
+        posx, posy = gf.dimensions(self)
+        gf.next_window(self, heating_schedules(), False)
 
     def func_exit(self):
         gf.close_application(self)
@@ -1064,6 +1070,237 @@ class construction(QtWidgets.QWidget):
         global posx, posy
         posx, posy = gf.dimensions(self)
         gf.next_window(self, about(), False)
+
+    def func_exit(self):
+        gf.close_application(self)
+
+class heating_schedules(QtWidgets.QWidget):
+    def __init__(self):
+        super(heating_schedules, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        global posx, posy, width, height, sizefactor
+
+        gf.windowSetup(self, posx + 10, posy + 10, width, height, pypath, 'CityEnrich - Heating Schedules')
+
+        # creating main layout
+        self.vbox = QtWidgets.QVBoxLayout(self)
+        self.setLayout(self.vbox)
+
+        gf.load_banner(self, os.path.join(pypath, r'pictures\e3dHeader.png'), sizefactor)
+
+        # grid layout for file selection
+        self.uGrid = QtWidgets.QGridLayout()
+
+        self.vbox.addLayout(self.uGrid)
+
+        self.gB_heating_schedules = QtWidgets.QGroupBox('Heating Schedules')
+        self.vbox.addWidget(self.gB_heating_schedules)
+        self.vBox_forheating = QtWidgets.QVBoxLayout()
+        self.gB_heating_schedules.setLayout(self.vBox_forheating)
+
+        # # walls enrichment
+        self.gB_heating_parameters = QtWidgets.QGroupBox('')
+        self.vBox_forheating.addWidget(self.gB_heating_parameters)
+        #
+        self.heatingGrid = QtWidgets.QGridLayout()
+        self.gB_heating_parameters.setLayout(self.heatingGrid)
+        #
+
+        self.lbl_date_begin = QtWidgets.QLabel('Start Date:')
+        self.heatingGrid.addWidget(self.lbl_date_begin, 0, 0, 1, 1)
+
+        self.txt_date_begin = QtWidgets.QLineEdit('') #ToDo: Add calander selection (Simon)
+        self.heatingGrid.addWidget(self.txt_date_begin, 0, 1, 1, 1)
+
+        self.lbl_date_end = QtWidgets.QLabel('End Date:')
+        self.heatingGrid.addWidget(self.lbl_date_end, 0, 2, 1, 1)
+
+        self.txt_date_end = QtWidgets.QLineEdit('')  # ToDo: Add calander selection (Simon)
+        self.heatingGrid.addWidget(self.txt_date_end, 0, 3, 1, 1)
+
+        self.lbl_hour_begin = QtWidgets.QLabel('Begin Hour:')
+        self.heatingGrid.addWidget(self.lbl_hour_begin, 1, 0, 1, 1)
+
+        self.txt_hour_begin = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.heatingGrid.addWidget(self.txt_hour_begin, 1, 1, 1, 1)
+
+        self.lbl_hour_end = QtWidgets.QLabel('End Hour:')
+        self.heatingGrid.addWidget(self.lbl_hour_end, 1, 2, 1, 1)
+
+        self.txt_hour_end = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.heatingGrid.addWidget(self.txt_hour_end, 1, 3, 1, 1)
+
+        self.lbl_time_interval = QtWidgets.QLabel('Time Interval and Unit') # ToDo: (Max) do we make the unit separate?
+        self.heatingGrid.addWidget(self.lbl_time_interval, 2, 0, 1, 1)
+
+        self.txt_time_interval = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.heatingGrid.addWidget(self.txt_time_interval, 2, 1, 1, 1)
+
+        self.lbl_acquisition_method = QtWidgets.QLabel('Acquisition Method:')
+        self.heatingGrid.addWidget(self.lbl_acquisition_method, 2, 2, 1, 1)
+
+        self.txt_acquisition_method = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.heatingGrid.addWidget(self.txt_acquisition_method, 2, 3, 1, 1)
+
+        self.lbl_interpolation_type = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
+        self.heatingGrid.addWidget(self.lbl_interpolation_type, 3, 0, 1, 1)
+
+        self.txt_interpolation = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
+        self.heatingGrid.addWidget(self.txt_interpolation, 3, 1, 1, 1)
+
+        self.lbl_thematic_description = QtWidgets.QLabel('Thematic Description:')
+        self.heatingGrid.addWidget(self.lbl_thematic_description, 3, 2, 1, 1)
+
+        self.txt_thematic_description = QtWidgets.QLineEdit('')  # ToDo: (Max) what do wanna add here?
+        self.heatingGrid.addWidget(self.txt_thematic_description, 3, 3, 1, 1)
+
+        # self.lbl_daytype = QtWidgets.QLabel('')  # ToDo: (Max) do we make the unit separate?
+        # self.heatingGrid.addWidget(self.lbl_daytype, 4, 0, 1, 1)
+
+        self.radio_weekdaytype = QtWidgets.QRadioButton('Weekday')
+        self.heatingGrid.addWidget(self.radio_weekdaytype, 4, 0, 1, 1)
+
+        self.radio_weekendtype = QtWidgets.QRadioButton('Weekend')
+        self.heatingGrid.addWidget(self.radio_weekendtype, 4, 1, 1, 1)
+
+        self.btn_select_heating = QtWidgets.QPushButton('Select Values')  # ToDo: (Max) do we make the unit separate?
+        self.heatingGrid.addWidget(self.btn_select_heating, 4, 2, 1, 1)
+
+        self.txt_path_select_values = QtWidgets.QLineEdit('')
+        self.heatingGrid.addWidget(self.txt_path_select_values, 4, 3, 1, 1)
+
+        self.lbl_unit = QtWidgets.QLabel('Unit:')
+        self.heatingGrid.addWidget(self.lbl_unit, 5, 0, 1, 1)
+
+        self.lbl_unit = QtWidgets.QLineEdit('') # ToDo: (Max) Dropdown?
+        self.heatingGrid.addWidget(self.lbl_unit, 5, 1, 1, 1)
+
+        self.radio_SIunit = QtWidgets.QRadioButton('SI')
+        self.heatingGrid.addWidget(self.radio_SIunit, 5, 2, 1, 1)
+
+        self.radio_fraction_unit = QtWidgets.QRadioButton('Fraction')
+        self.heatingGrid.addWidget(self.radio_fraction_unit, 5, 3, 1, 1)
+
+        #
+        # self.lbl_U_Value = QtWidgets.QLabel('U-Value')
+        # self.heatingGrid.addWidget(self.lbl_U_Value, 0, 2, 1, 1)
+        #
+        # self.txt_walluvalue = QtWidgets.QLineEdit('')
+        # self.txt_walluvalue.setPlaceholderText('U Value of Wall')
+        # self.heatingGrid.addWidget(self.txt_walluvalue, 0, 3, 1, 1)
+        #
+        # self.btn_material_wall = QtWidgets.QPushButton('Material Selection')
+        # self.heatingGrid.addWidget(self.btn_material_wall, 1, 0, 1, 2)
+        #
+        # # self.btn_walls = QtWidgets.QPushButton('Construction')
+        # # self.roofGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
+        #
+        # # # roof enrichment
+        # self.gB_roof = QtWidgets.QGroupBox('Roof')
+        # self.vBox_forconstruction.addWidget(self.gB_roof)
+        # #
+        # self.roofGrid = QtWidgets.QGridLayout()
+        # self.gB_roof.setLayout(self.roofGrid)
+        # #
+        #
+        # self.btn_zone = QtWidgets.QPushButton('Thermal Zones')
+        # self.roofGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
+        #
+        # self.btn_walls = QtWidgets.QPushButton('Construction')
+        # self.roofGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
+        #
+        # self.btn_occupancy = QtWidgets.QPushButton('Occupancy')
+        # self.roofGrid.addWidget(self.btn_occupancy, 1, 1, 1, 1)
+        #
+        # self.btn_light_app = QtWidgets.QPushButton('Lighting and Appliances')
+        # self.roofGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
+        #
+        # # # ground surface enrichment
+        # self.gB_ground_surface = QtWidgets.QGroupBox('Ground Surface')
+        # self.vBox_forconstruction.addWidget(self.gB_ground_surface)
+        # #
+        # self.groundGrid = QtWidgets.QGridLayout()
+        # self.gB_ground_surface.setLayout(self.groundGrid)
+        # #
+        # self.btn_zone = QtWidgets.QPushButton('Thermal Zones')
+        # self.groundGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
+        #
+        # self.btn_walls = QtWidgets.QPushButton('Construction')
+        # self.groundGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
+        #
+        # self.btn_occupancy = QtWidgets.QPushButton('Occupancy')
+        # self.groundGrid.addWidget(self.btn_occupancy, 1, 1, 1, 1)
+        #
+        # self.btn_light_app = QtWidgets.QPushButton('Lighting and Appliances')
+        # self.groundGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
+        #
+        # # # window enrichment
+        # self.gB_window = QtWidgets.QGroupBox('Window')
+        # self.vBox_forconstruction.addWidget(self.gB_window)
+        # #
+        # self.windGrid = QtWidgets.QGridLayout()
+        # self.gB_window.setLayout(self.windGrid)
+        # #
+        # self.btn_zone = QtWidgets.QPushButton('Thermal Zones')
+        # self.windGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
+        #
+        # self.btn_walls = QtWidgets.QPushButton('Construction')
+        # self.windGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
+        #
+        # self.btn_occupancy = QtWidgets.QPushButton('Occupancy')
+        # self.windGrid.addWidget(self.btn_occupancy, 1, 1, 1, 1)
+        #
+        # self.btn_light_app = QtWidgets.QPushButton('Lighting and Appliances')
+        # self.windGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
+        #
+        #
+        # # usagezone
+        # self.gB_usagezone = QtWidgets.QGroupBox('Usage Zone - Schedules')
+        # self.vbox.addWidget(self.gB_usagezone)
+        #
+        # self.aGrid = QtWidgets.QGridLayout()
+        # self.gB_usagezone.setLayout(self.aGrid)
+        #
+        # self.btn_zone = QtWidgets.QPushButton('Heating')
+        # self.aGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
+        #
+        # self.btn_walls = QtWidgets.QPushButton('Cooling')
+        # self.aGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
+        #
+        # self.btn_occupancy = QtWidgets.QPushButton('Ventilation')
+        # self.aGrid.addWidget(self.btn_occupancy, 1, 0, 1, 1)
+        #
+        # self.btn_light_app = QtWidgets.QPushButton('Occupancy')
+        # self.aGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
+        #
+
+        self.l2Grid_heating = QtWidgets.QGridLayout()
+
+        self.btn_save = QtWidgets.QPushButton('Save') #ToDo: (Simon) Add functionalities to save
+        self.l2Grid_heating.addWidget(self.btn_save, 0, 0, 1, 1)
+
+        self.btn_reset = QtWidgets.QPushButton('Reset') #ToDo: (Simon) Add functionalities to reset
+        self.l2Grid_heating.addWidget(self.btn_reset, 0, 1, 1, 1)
+
+        self.btn_exit = QtWidgets.QPushButton('Exit')
+        self.l2Grid_heating.addWidget(self.btn_exit, 0, 2, 1, 1)
+
+        self.btn_back = QtWidgets.QPushButton('Back') #ToDo: (Simon) Add functionalities to back
+        self.l2Grid_heating.addWidget(self.btn_back, 0, 3, 1, 1)
+
+        self.vbox.addLayout(self.l2Grid_heating)
+
+        # self.btn_save.clicked.connect(self.func_about)
+        # self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_exit.clicked.connect(self.func_exit)
+        # self.btn_back.clicked.connect(self.func_back)
+
+    # def func_about(self):
+    #     global posx, posy
+    #     posx, posy = gf.dimensions(self)
+    #     gf.next_window(self, about(), False)
 
     def func_exit(self):
         gf.close_application(self)
