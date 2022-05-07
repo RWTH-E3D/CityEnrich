@@ -955,7 +955,7 @@ class construction(QtWidgets.QWidget):
     def initUI(self):
         global posx, posy, width, height, sizefactor
 
-        gf.windowSetup(self, posx + 10, posy + 10, width, height, pypath, 'CityEnrich - Thermal Zones')
+        gf.windowSetup(self, posx + 10, posy + 10, width+100, height+100, pypath, 'CityEnrich - Thermal Zones')
 
         # creating main layout
         self.vbox = QtWidgets.QVBoxLayout(self)
@@ -1129,98 +1129,36 @@ class construction(QtWidgets.QWidget):
         self.txt_material_layers_ground = QtWidgets.QLineEdit('')
         self.aGrid_ground.addWidget(self.txt_material_layers_ground, 1, 1, 1, 1)
 
-        #
-        # self.lbl_U_Value = QtWidgets.QLabel('U-Value')
-        # self.wallGrid.addWidget(self.lbl_U_Value, 0, 2, 1, 1)
-        #
-        # self.txt_walluvalue = QtWidgets.QLineEdit('')
-        # self.txt_walluvalue.setPlaceholderText('U Value of Wall')
-        # self.wallGrid.addWidget(self.txt_walluvalue, 0, 3, 1, 1)
-        #
-        # self.btn_material_wall = QtWidgets.QPushButton('Material Selection')
-        # self.wallGrid.addWidget(self.btn_material_wall, 1, 0, 1, 2)
+        #Windows
+        self.gB_enrichment_windows = QtWidgets.QGroupBox('Windows')
+        self.vBox_forconstruction.addWidget(self.gB_enrichment_windows)
+        # #
+        self.windowsGrid = QtWidgets.QGridLayout()
+        self.gB_enrichment_windows.setLayout(self.windowsGrid)
 
-        # self.btn_walls = QtWidgets.QPushButton('Construction')
-        # self.roofGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
+        self.lbl_uvalue_windows = QtWidgets.QLabel('uValue:')  # ToDo: Currently it is just a combobox
+        self.windowsGrid.addWidget(self.lbl_uvalue_windows, 0, 0, 1, 1)
 
-        # # roof enrichment
-        # self.gB_roof = QtWidgets.QGroupBox('Roof')
-        # self.vBox_forconstruction.addWidget(self.gB_roof)
-        # #
-        # self.roofGrid = QtWidgets.QGridLayout()
-        # self.gB_roof.setLayout(self.roofGrid)
-        # #
-        #
-        # self.btn_zone = QtWidgets.QPushButton('Thermal Zones')
-        # self.roofGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
-        #
-        # self.btn_construction = QtWidgets.QPushButton('Construction')
-        # self.roofGrid.addWidget(self.btn_construction, 0, 1, 1, 1)
-        #
-        # self.btn_occupancy = QtWidgets.QPushButton('Occupancy')
-        # self.roofGrid.addWidget(self.btn_occupancy, 1, 1, 1, 1)
-        #
-        # self.btn_light_app = QtWidgets.QPushButton('Lighting and Appliances')
-        # self.roofGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
-        #
-        # # # ground surface enrichment
-        # self.gB_ground_surface = QtWidgets.QGroupBox('Ground Surface')
-        # self.vBox_forconstruction.addWidget(self.gB_ground_surface)
-        # #
-        # self.groundGrid = QtWidgets.QGridLayout()
-        # self.gB_ground_surface.setLayout(self.groundGrid)
-        # #
-        # self.btn_zone = QtWidgets.QPushButton('Thermal Zones')
-        # self.groundGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
-        #
-        # self.btn_walls = QtWidgets.QPushButton('Construction')
-        # self.groundGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
-        #
-        # self.btn_occupancy = QtWidgets.QPushButton('Occupancy')
-        # self.groundGrid.addWidget(self.btn_occupancy, 1, 1, 1, 1)
-        #
-        # self.btn_light_app = QtWidgets.QPushButton('Lighting and Appliances')
-        # self.groundGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
-        #
-        # # # window enrichment
-        # self.gB_window = QtWidgets.QGroupBox('Window')
-        # self.vBox_forconstruction.addWidget(self.gB_window)
-        # #
-        # self.windGrid = QtWidgets.QGridLayout()
-        # self.gB_window.setLayout(self.windGrid)
-        # #
-        # self.btn_zone = QtWidgets.QPushButton('Thermal Zones')
-        # self.windGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
-        #
-        # self.btn_walls = QtWidgets.QPushButton('Construction')
-        # self.windGrid.addWidget(self.btn_walls, 0, 1, 1, 1)
-        #
-        # self.btn_occupancy = QtWidgets.QPushButton('Occupancy')
-        # self.windGrid.addWidget(self.btn_occupancy, 1, 1, 1, 1)
-        #
-        # self.btn_light_app = QtWidgets.QPushButton('Lighting and Appliances')
-        # self.windGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
-        #
-        #
-        # # usagezone
-        # self.gB_usagezone = QtWidgets.QGroupBox('Usage Zone - Schedules')
-        # self.vbox.addWidget(self.gB_usagezone)
-        #
-        # self.aGrid = QtWidgets.QGridLayout()
-        # self.gB_usagezone.setLayout(self.aGrid)
-        #
-        # self.btn_zone = QtWidgets.QPushButton('Heating')
-        # self.aGrid.addWidget(self.btn_zone, 0, 0, 1, 1)
-        #
-        # self.btn_cooling = QtWidgets.QPushButton('Cooling')
-        # self.aGrid.addWidget(self.btn_cooling, 0, 1, 1, 1)
-        #
-        # self.btn_occupancy = QtWidgets.QPushButton('Ventilation')
-        # self.aGrid.addWidget(self.btn_occupancy, 1, 0, 1, 1)
-        #
-        # self.btn_light_app = QtWidgets.QPushButton('Occupancy')
-        # self.aGrid.addWidget(self.btn_light_app, 1, 1, 1, 1)
+        self.txt_uvalue_windows = QtWidgets.QLineEdit('')
+        self.windowsGrid.addWidget(self.txt_uvalue_windows, 0, 1, 1, 1)
 
+        self.lbl_transmittanceFraction_windows = QtWidgets.QLabel('Transmittance Fraction:')
+        self.windowsGrid.addWidget(self.lbl_transmittanceFraction_windows, 0, 2, 1, 1)
+
+        self.txt_transmittance_fraction_windows = QtWidgets.QLineEdit('')  # ToDo: Based on the description combo?
+        self.windowsGrid.addWidget(self.txt_transmittance_fraction_windows, 0, 3, 1, 1)
+
+        self.lbl_wavelengthrange_windows = QtWidgets.QLabel('Wave Length Range:')
+        self.windowsGrid.addWidget(self.lbl_wavelengthrange_windows, 1, 0, 1, 1)
+
+        self.txt_wavelengthrange_windows = QtWidgets.QLineEdit('')
+        self.windowsGrid.addWidget(self.txt_wavelengthrange_windows, 1, 1, 1, 1)
+
+        self.lbl_glazingratio_windows = QtWidgets.QLabel('Glazing Ratio:')
+        self.windowsGrid.addWidget(self.lbl_glazingratio_windows, 1, 2, 1, 1)
+
+        self.txt_glazingratio_windows = QtWidgets.QLineEdit('')
+        self.windowsGrid.addWidget(self.txt_glazingratio_windows, 1, 3, 1, 1)
 
         self.l2Grid = QtWidgets.QGridLayout()
 
