@@ -815,7 +815,8 @@ class thermalzones(QtWidgets.QWidget):
         self.lbl_floorarea = QtWidgets.QLabel('Floor Area')
         self.pGrid.addWidget(self.lbl_floorarea, 0, 0, 1, 1)
 
-        self.txt_area = QtWidgets.QLineEdit('Floor area in m2')
+        self.txt_area = QtWidgets.QLineEdit('')
+        self.txt_area.setPlaceholderText("Floor area in m2")
         self.pGrid.addWidget(self.txt_area, 0, 1, 1, 1)
 
         self.vBox_forthermal.addWidget(self.gB_thermalzone)
@@ -829,7 +830,8 @@ class thermalzones(QtWidgets.QWidget):
         self.lbl_volume = QtWidgets.QLabel('Volume')
         self.pGrid.addWidget(self.lbl_volume, 1, 0, 1, 1)
 
-        self.txt_volume = QtWidgets.QLineEdit('Volume in m3')
+        self.txt_volume = QtWidgets.QLineEdit('')
+        self.txt_volume.setPlaceholderText("Volume in m3")
         self.pGrid.addWidget(self.txt_volume, 1, 1, 1, 1)
 
         self.rB_Grossvolume = QtWidgets.QRadioButton('Gross Volume')
@@ -1159,6 +1161,13 @@ class construction(QtWidgets.QWidget):
 
         self.txt_glazingratio_windows = QtWidgets.QLineEdit('')
         self.windowsGrid.addWidget(self.txt_glazingratio_windows, 1, 3, 1, 1)
+
+        self.lbl_window2wallRatio = QtWidgets.QLabel("Window to wall ratio:")
+        self.windowsGrid.addWidget(self.lbl_window2wallRatio, 2, 0, 1, 1)
+
+        self.txt_window2wallRatio = QtWidgets.QLineEdit('')
+        self.windowsGrid.addWidget(self.txt_window2wallRatio, 2, 1, 1, 1)
+
 
         self.l2Grid = QtWidgets.QGridLayout()
 
@@ -1823,7 +1832,7 @@ class occupancy_schedules(QtWidgets.QWidget):
         self.occupancyGrid.addWidget(self.txt_totalValue_occupancy, 7, 1, 1, 1)
 
         self.lbl_number_occupancy = QtWidgets.QLabel('Number of Occupants:')
-        self.occupancyGrid.addWidget(self.lbl_radiant_fraction_occupancy, 7, 2, 1, 1)
+        self.occupancyGrid.addWidget(self.lbl_number_occupancy, 7, 2, 1, 1)
 
         self.txt_number_occupancy = QtWidgets.QLineEdit('')
         self.occupancyGrid.addWidget(self.txt_number_occupancy, 7, 3, 1, 1)
