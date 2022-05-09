@@ -437,3 +437,11 @@ def get_min_max_elevation(element, nss, curMin=math.inf, curMax=-math.inf):
         maxim = max(maxim, max(z_coorFLT))
 
     return minim, maxim
+
+
+
+def getIndexFromBuildingDict(self, buildingname):
+    """gets the index of the building within the buildingDict"""
+    for key in self.buildingDict:
+        if buildingname.split("/")[1] == self.buildingDict[key]["buildingname"]:
+            return key

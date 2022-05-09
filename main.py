@@ -563,7 +563,7 @@ class enrichment_main(QtWidgets.QWidget):
         self.overWriteFlag = False
         if self.cB_curBuilding.currentIndex() != 0:
             try:
-                index = ldt.getIndexFromBuildingDict(self, self.cB_curBuilding.currentText())
+                index = sel.getIndexFromBuildingDict(self, self.cB_curBuilding.currentText())
             except:
                 index = -1
         else:
