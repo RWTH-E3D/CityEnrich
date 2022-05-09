@@ -7,6 +7,7 @@ import PySide2
 from PySide2 import QtWidgets, QtGui, QtCore
 import time
 import functools
+import pandas as pd
 
 # import of functions
 import gui_functions as gf
@@ -960,6 +961,12 @@ class construction(QtWidgets.QWidget):
 
         gf.windowSetup(self, posx + 10, posy + 10, width+100, height+100, pypath, 'CityEnrich - Thermal Zones')
 
+        # loading materials from file
+        self.materials = pd.read_json("files from teaser+\MaterialTemplates.json")
+        self.materialNames = []
+        for i in self.materials.columns:
+            self.materialNames.append(self.materials[i]["name"])
+
         self.num_layers_wall = 0
         self.layers_wall = {}
 
@@ -1205,6 +1212,7 @@ class construction(QtWidgets.QWidget):
         layer["layout"].addWidget(layer["lbl_material"], 0, 0, 1, 1)
 
         layer["cB_material"] = QtWidgets.QComboBox()
+        layer["cB_material"].addItems(self.materialNames)
         layer["layout"].addWidget(layer["cB_material"], 0, 1, 1, 1)
 
         layer["lbl_thickness"] = QtWidgets.QLabel('Thickness:')
