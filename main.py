@@ -6,6 +6,7 @@ import sys
 import PySide2
 from PySide2 import QtWidgets, QtGui, QtCore
 import time
+import functools
 
 # import of functions
 import gui_functions as gf
@@ -959,17 +960,25 @@ class construction(QtWidgets.QWidget):
 
         gf.windowSetup(self, posx + 10, posy + 10, width+100, height+100, pypath, 'CityEnrich - Thermal Zones')
 
+        self.num_layers_wall = 0
+        self.layers_wall = {}
+
+        self.num_layers_roof = 0
+        self.layers_roof = {}
+
+        self.num_layers_ground = 0
+        self.layers_ground = {}
+
         # creating main layout
         self.vbox = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.vbox)
 
         # gf.load_banner(self, os.path.join(pypath, r'pictures\e3dHeader.png'), sizefactor)
 
-        # grid layout for file selection
-        self.uGrid = QtWidgets.QGridLayout()
+        # # grid layout for file selection
+        # self.uGrid = QtWidgets.QGridLayout()
 
-        self.vbox.addLayout(self.uGrid)
-
+        # self.vbox.addLayout(self.uGrid)
         self.gB_construction = QtWidgets.QGroupBox('Construction Enrichment')
         self.vbox.addWidget(self.gB_construction)
         self.vBox_forconstruction = QtWidgets.QVBoxLayout()
@@ -979,8 +988,20 @@ class construction(QtWidgets.QWidget):
 
         # self.btn_enrichment_walls = QtWidgets.QPushButton('Walls')
         # self.vBox_forconstruction.addWidget(self)
-        self.gB_enrichment_walls = QtWidgets.QGroupBox('Walls')
-        self.vBox_forconstruction.addWidget(self.gB_enrichment_walls)
+
+        self.scrollArea = QtWidgets.QScrollArea(self)
+        self.vBox_forconstruction.addWidget(self.scrollArea)
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollContent = QtWidgets.QWidget(self.scrollArea)
+        self.scrollLayout = QtWidgets.QVBoxLayout(self.scrollContent)
+        self.scrollContent.setLayout(self.scrollLayout)
+
+
+        self.scrollArea.setWidget(self.scrollContent)
+
+
+        self.gB_enrichment_walls = QtWidgets.QGroupBox('Outer walls')
+        self.scrollLayout.addWidget(self.gB_enrichment_walls)
         # #
         self.wallGrid = QtWidgets.QGridLayout()
         self.gB_enrichment_walls.setLayout(self.wallGrid)
@@ -988,50 +1009,44 @@ class construction(QtWidgets.QWidget):
         self.lbl_description_walls = QtWidgets.QLabel('Description:') #ToDo: Currently it is just a combobox
         self.wallGrid.addWidget(self.lbl_description_walls, 0, 0, 1, 1)
 
-        self.txt_description_walls = QtWidgets.QComboBox()
-        self.txt_description_walls.setFont(QtGui.QFont("Consolas"))
-        self.txt_description_walls.addItems(['Placeholder1', '2'])
-        self.wallGrid.addWidget(self.txt_description_walls, 0, 1, 1, 1)
+        self.vbox_wallLayers = QtWidgets.QVBoxLayout()
+        self.wallGrid.addLayout(self.vbox_wallLayers, 1, 0, 1, 4)
 
-        self.lbl_name_walls = QtWidgets.QLabel('Name:')
-        self.wallGrid.addWidget(self.lbl_name_walls, 0, 2, 1, 1)
+        # self.gB_layers_walls = QtWidgets.QGroupBox('Layer 1')
+        # self.wallGrid.addWidget(self.gB_layers_walls, 1, 0, 1, 4)
+        # #
+        # self.aGrid_walls = QtWidgets.QGridLayout()
+        # self.gB_layers_walls.setLayout(self.aGrid_walls)
 
-        self.txt_description_walls = QtWidgets.QComboBox() #ToDo: Based on the description combo?
-        self.wallGrid.addWidget(self.txt_description_walls, 0, 3, 1, 1)
+        # self.lbl_material_layers_walls = QtWidgets.QLabel('Selected Material:')
+        # self.aGrid_walls.addWidget(self.lbl_material_layers_walls, 0, 0, 1, 1)
+
+        # self.txt_material_layers_walls = QtWidgets.QLineEdit('')
+        # self.aGrid_walls.addWidget(self.txt_material_layers_walls, 0, 1, 1, 1)
+
+        # self.lbl_thickness_layers_walls = QtWidgets.QLabel('Thickness:')
+        # self.aGrid_walls.addWidget(self.lbl_thickness_layers_walls, 0, 2, 1, 1)
+
+        # self.txt_thickness_layers_walls = QtWidgets.QLineEdit('')
+        # self.aGrid_walls.addWidget(self.txt_thickness_layers_walls, 0, 3, 1, 1)
+
+        self.btn_wall_removeLayer = QtWidgets.QPushButton("remove layer")
+        self.wallGrid.addWidget(self.btn_wall_removeLayer, 2, 2, 1, 1)
+        
+        self.btn_wall_addLayer = QtWidgets.QPushButton("add layer")
+        self.wallGrid.addWidget(self.btn_wall_addLayer, 2, 3, 1, 1)
+
 
         self.lbl_uvalue_walls = QtWidgets.QLabel('U-value:')
-        self.wallGrid.addWidget(self.lbl_uvalue_walls, 2, 0, 1, 1)
+        self.wallGrid.addWidget(self.lbl_uvalue_walls, 3, 0, 1, 1)
 
         self.txt_uvalue_walls = QtWidgets.QLineEdit('')
-        self.wallGrid.addWidget(self.txt_uvalue_walls, 2, 1, 1, 1)
+        self.wallGrid.addWidget(self.txt_uvalue_walls, 3, 1, 1, 3)
 
-        self.gB_layers_walls = QtWidgets.QGroupBox('Layers')
-        self.wallGrid.addWidget(self.gB_layers_walls, 3, 0, 1, 4)
-        #
-        self.aGrid_walls = QtWidgets.QGridLayout()
-        self.gB_layers_walls.setLayout(self.aGrid_walls)
-
-        self.lbl_areafraction_walls = QtWidgets.QLabel('Area Fraction:')
-        self.aGrid_walls.addWidget(self.lbl_areafraction_walls, 0, 0, 1, 1)
-
-        self.txt_areafraction_walls = QtWidgets.QLineEdit('')
-        self.aGrid_walls.addWidget(self.txt_areafraction_walls, 0, 1, 1, 1)
-
-        self.lbl_thickness_layers_walls = QtWidgets.QLabel('Thickness:')
-        self.aGrid_walls.addWidget(self.lbl_thickness_layers_walls, 0, 2, 1, 1)
-
-        self.txt_thickness_layers_walls = QtWidgets.QLineEdit('')
-        self.aGrid_walls.addWidget(self.txt_thickness_layers_walls, 0, 3, 1, 1)
-
-        self.lbl_material_layers_walls = QtWidgets.QLabel('Selected Material:')
-        self.aGrid_walls.addWidget(self.lbl_material_layers_walls, 1, 0, 1, 1)
-
-        self.txt_material_layers_walls = QtWidgets.QLineEdit('')
-        self.aGrid_walls.addWidget(self.txt_material_layers_walls, 1, 1, 1, 1)
 
         #Roof
         self.gB_enrichment_roof = QtWidgets.QGroupBox('Roof')
-        self.vBox_forconstruction.addWidget(self.gB_enrichment_roof)
+        self.scrollLayout.addWidget(self.gB_enrichment_roof)
         # #
         self.roofGrid = QtWidgets.QGridLayout()
         self.gB_enrichment_roof.setLayout(self.roofGrid)
@@ -1039,50 +1054,25 @@ class construction(QtWidgets.QWidget):
         self.lbl_description_roof = QtWidgets.QLabel('Description:')  # ToDo: Currently it is just a combobox
         self.roofGrid.addWidget(self.lbl_description_roof, 0, 0, 1, 1)
 
-        self.txt_description_roof = QtWidgets.QComboBox()
-        self.txt_description_roof.setFont(QtGui.QFont("Consolas"))
-        self.txt_description_roof.addItems(['Placeholder1', '2'])
-        self.roofGrid.addWidget(self.txt_description_roof, 0, 1, 1, 1)
+        self.vbox_roofLayers = QtWidgets.QVBoxLayout()
+        self.roofGrid.addLayout(self.vbox_roofLayers, 1, 0, 1, 4)
 
-        self.lbl_name_roof = QtWidgets.QLabel('Name:')
-        self.roofGrid.addWidget(self.lbl_name_roof, 0, 2, 1, 1)
+        self.btn_roof_removeLayer = QtWidgets.QPushButton("remove layer")
+        self.roofGrid.addWidget(self.btn_roof_removeLayer, 2, 2, 1, 1)
+        
+        self.btn_roof_addLayer = QtWidgets.QPushButton("add layer")
+        self.roofGrid.addWidget(self.btn_roof_addLayer, 2, 3, 1, 1)
 
-        self.txt_description_roof = QtWidgets.QComboBox()  # ToDo: Based on the description combo?
-        self.roofGrid.addWidget(self.txt_description_roof, 0, 3, 1, 1)
 
         self.lbl_uvalue_roof = QtWidgets.QLabel('U-value:')
-        self.roofGrid.addWidget(self.lbl_uvalue_roof, 2, 0, 1, 1)
+        self.roofGrid.addWidget(self.lbl_uvalue_roof, 3, 0, 1, 1)
 
         self.txt_uvalue_roof = QtWidgets.QLineEdit('')
-        self.roofGrid.addWidget(self.txt_uvalue_roof, 2, 1, 1, 1)
-
-        self.gB_layers_roof = QtWidgets.QGroupBox('Layers')
-        self.roofGrid.addWidget(self.gB_layers_roof, 3, 0, 1, 4)
-        #
-        self.aGrid_roof = QtWidgets.QGridLayout()
-        self.gB_layers_roof.setLayout(self.aGrid_roof)
-
-        self.lbl_areafraction_roof = QtWidgets.QLabel('Area Fraction:')
-        self.aGrid_roof.addWidget(self.lbl_areafraction_roof, 0, 0, 1, 1)
-
-        self.txt_areafraction_roof = QtWidgets.QLineEdit('')
-        self.aGrid_roof.addWidget(self.txt_areafraction_roof, 0, 1, 1, 1)
-
-        self.lbl_thickness_layers_roof = QtWidgets.QLabel('Thickness:')
-        self.aGrid_roof.addWidget(self.lbl_thickness_layers_roof, 0, 2, 1, 1)
-
-        self.txt_thickness_layers_roof = QtWidgets.QLineEdit('')
-        self.aGrid_roof.addWidget(self.txt_thickness_layers_roof, 0, 3, 1, 1)
-
-        self.lbl_material_layers_roof = QtWidgets.QLabel('Selected Material:')
-        self.aGrid_roof.addWidget(self.lbl_material_layers_roof, 1, 0, 1, 1)
-
-        self.txt_material_layers_roof = QtWidgets.QLineEdit('')
-        self.aGrid_roof.addWidget(self.txt_material_layers_roof, 1, 1, 1, 1)
+        self.roofGrid.addWidget(self.txt_uvalue_roof, 3, 1, 1, 3)
 
         # Ground Slab
         self.gB_enrichment_ground = QtWidgets.QGroupBox('Ground')
-        self.vBox_forconstruction.addWidget(self.gB_enrichment_ground)
+        self.scrollLayout.addWidget(self.gB_enrichment_ground)
         # #
         self.groundGrid = QtWidgets.QGridLayout()
         self.gB_enrichment_ground.setLayout(self.groundGrid)
@@ -1090,59 +1080,34 @@ class construction(QtWidgets.QWidget):
         self.lbl_description_ground = QtWidgets.QLabel('Description:')  # ToDo: Currently it is just a combobox
         self.groundGrid.addWidget(self.lbl_description_ground, 0, 0, 1, 1)
 
-        self.txt_description_ground = QtWidgets.QComboBox()
-        self.txt_description_ground.setFont(QtGui.QFont("Consolas"))
-        self.txt_description_ground.addItems(['Placeholder1', '2'])
-        self.groundGrid.addWidget(self.txt_description_ground, 0, 1, 1, 1)
+        self.vbox_groundLayers = QtWidgets.QVBoxLayout()
+        self.groundGrid.addLayout(self.vbox_groundLayers, 1, 0, 1, 4)
 
-        self.lbl_name_ground = QtWidgets.QLabel('Name:')
-        self.groundGrid.addWidget(self.lbl_name_ground, 0, 2, 1, 1)
-
-        self.txt_description_ground = QtWidgets.QComboBox()  # ToDo: Based on the description combo?
-        self.groundGrid.addWidget(self.txt_description_ground, 0, 3, 1, 1)
+        self.btn_ground_removeLayer = QtWidgets.QPushButton("remove layer")
+        self.groundGrid.addWidget(self.btn_ground_removeLayer, 2, 2, 1, 1)
+        
+        self.btn_ground_addLayer = QtWidgets.QPushButton("add layer")
+        self.groundGrid.addWidget(self.btn_ground_addLayer, 2, 3, 1, 1)
 
         self.lbl_uvalue_ground = QtWidgets.QLabel('U-value:')
-        self.groundGrid.addWidget(self.lbl_uvalue_ground, 2, 0, 1, 1)
+        self.groundGrid.addWidget(self.lbl_uvalue_ground, 3, 0, 1, 1)
 
         self.txt_uvalue_ground = QtWidgets.QLineEdit('')
-        self.groundGrid.addWidget(self.txt_uvalue_ground, 2, 1, 1, 1)
+        self.groundGrid.addWidget(self.txt_uvalue_ground, 3, 1, 1, 3)
 
-        self.gB_layers_ground = QtWidgets.QGroupBox('Layers')
-        self.groundGrid.addWidget(self.gB_layers_ground, 3, 0, 1, 4)
-        #
-        self.aGrid_ground = QtWidgets.QGridLayout()
-        self.gB_layers_ground.setLayout(self.aGrid_ground)
-
-        self.lbl_areafraction_ground = QtWidgets.QLabel('Area Fraction:')
-        self.aGrid_ground.addWidget(self.lbl_areafraction_ground, 0, 0, 1, 1)
-
-        self.txt_areafraction_ground = QtWidgets.QLineEdit('')
-        self.aGrid_ground.addWidget(self.txt_areafraction_ground, 0, 1, 1, 1)
-
-        self.lbl_thickness_layers_ground = QtWidgets.QLabel('Thickness:')
-        self.aGrid_ground.addWidget(self.lbl_thickness_layers_ground, 0, 2, 1, 1)
-
-        self.txt_thickness_layers_ground = QtWidgets.QLineEdit('')
-        self.aGrid_ground.addWidget(self.txt_thickness_layers_ground, 0, 3, 1, 1)
-
-        self.lbl_material_layers_ground = QtWidgets.QLabel('Selected Material:')
-        self.aGrid_ground.addWidget(self.lbl_material_layers_ground, 1, 0, 1, 1)
-
-        self.txt_material_layers_ground = QtWidgets.QLineEdit('')
-        self.aGrid_ground.addWidget(self.txt_material_layers_ground, 1, 1, 1, 1)
 
         #Windows
         self.gB_enrichment_windows = QtWidgets.QGroupBox('Windows')
-        self.vBox_forconstruction.addWidget(self.gB_enrichment_windows)
+        self.scrollLayout.addWidget(self.gB_enrichment_windows)
         # #
         self.windowsGrid = QtWidgets.QGridLayout()
         self.gB_enrichment_windows.setLayout(self.windowsGrid)
 
-        self.lbl_uvalue_windows = QtWidgets.QLabel('uValue:')  # ToDo: Currently it is just a combobox
-        self.windowsGrid.addWidget(self.lbl_uvalue_windows, 0, 0, 1, 1)
+        self.lbl_window2wallRatio = QtWidgets.QLabel("Window to wall ratio:")
+        self.windowsGrid.addWidget(self.lbl_window2wallRatio, 0, 0, 1, 1)
 
-        self.txt_uvalue_windows = QtWidgets.QLineEdit('')
-        self.windowsGrid.addWidget(self.txt_uvalue_windows, 0, 1, 1, 1)
+        self.txt_window2wallRatio = QtWidgets.QLineEdit('')
+        self.windowsGrid.addWidget(self.txt_window2wallRatio, 0, 1, 1, 1)
 
         self.lbl_transmittanceFraction_windows = QtWidgets.QLabel('Transmittance Fraction:')
         self.windowsGrid.addWidget(self.lbl_transmittanceFraction_windows, 0, 2, 1, 1)
@@ -1162,11 +1127,13 @@ class construction(QtWidgets.QWidget):
         self.txt_glazingratio_windows = QtWidgets.QLineEdit('')
         self.windowsGrid.addWidget(self.txt_glazingratio_windows, 1, 3, 1, 1)
 
-        self.lbl_window2wallRatio = QtWidgets.QLabel("Window to wall ratio:")
-        self.windowsGrid.addWidget(self.lbl_window2wallRatio, 2, 0, 1, 1)
+        self.lbl_uvalue_windows = QtWidgets.QLabel('U-value:')  # ToDo: Currently it is just a combobox
+        self.windowsGrid.addWidget(self.lbl_uvalue_windows, 2, 0, 1, 1)
 
-        self.txt_window2wallRatio = QtWidgets.QLineEdit('')
-        self.windowsGrid.addWidget(self.txt_window2wallRatio, 2, 1, 1, 1)
+        self.txt_uvalue_windows = QtWidgets.QLineEdit('')
+        self.windowsGrid.addWidget(self.txt_uvalue_windows, 2, 1, 1, 3)
+
+        
 
 
         self.l2Grid = QtWidgets.QGridLayout()
@@ -1190,6 +1157,20 @@ class construction(QtWidgets.QWidget):
         self.btn_exit.clicked.connect(self.func_exit)
         # self.btn_back.clicked.connect(self.func_back)
 
+        self.btn_wall_addLayer.clicked.connect(functools.partial(self.func_addLayer, "wall"))
+        self.btn_wall_removeLayer.clicked.connect(functools.partial(self.func_removeLayer, "wall"))
+
+        self.btn_roof_addLayer.clicked.connect(functools.partial(self.func_addLayer, "roof"))
+        self.btn_roof_removeLayer.clicked.connect(functools.partial(self.func_removeLayer, "roof"))
+
+        self.btn_ground_addLayer.clicked.connect(functools.partial(self.func_addLayer, "ground"))
+        self.btn_ground_removeLayer.clicked.connect(functools.partial(self.func_removeLayer, "ground"))
+
+
+        self.func_addLayer("wall")
+        self.func_addLayer("roof")
+        self.func_addLayer("ground")
+
     def func_about(self):
         global posx, posy
         posx, posy = gf.dimensions(self)
@@ -1197,6 +1178,83 @@ class construction(QtWidgets.QWidget):
 
     def func_exit(self):
         gf.close_application(self)
+
+
+
+    def func_addLayer(self, target):
+        """function adds inputs for an additional target layer"""
+        layer = {}
+
+        if target == "wall":
+            vbox = self.vbox_wallLayers
+            num_of_layers = self.num_layers_wall
+        elif target == "roof":
+            vbox = self.vbox_roofLayers
+            num_of_layers = self.num_layers_roof
+        elif target == "ground":
+            vbox = self.vbox_groundLayers
+            num_of_layers = self.num_layers_ground
+        
+        layer["gB"] = QtWidgets.QGroupBox(f'Layer {str(num_of_layers + 1)}')
+        vbox.insertWidget(-1, layer["gB"])
+        
+        layer["layout"] = QtWidgets.QGridLayout()
+        layer["gB"].setLayout(layer["layout"])
+
+        layer["lbl_material"] = QtWidgets.QLabel('Selected Material:')
+        layer["layout"].addWidget(layer["lbl_material"], 0, 0, 1, 1)
+
+        layer["cB_material"] = QtWidgets.QComboBox()
+        layer["layout"].addWidget(layer["cB_material"], 0, 1, 1, 1)
+
+        layer["lbl_thickness"] = QtWidgets.QLabel('Thickness:')
+        layer["layout"].addWidget(layer["lbl_thickness"], 0, 2, 1, 1)
+
+        layer["txt_thickness"] = QtWidgets.QLineEdit('')
+        layer["layout"].addWidget(layer["txt_thickness"], 0, 3, 1, 1)
+
+
+        if target == "wall":
+            self.layers_wall[str(num_of_layers)] = layer
+            self.num_layers_wall -=- 1
+        elif target == "roof":
+            self.layers_roof[str(num_of_layers)] = layer
+            self.num_layers_roof -=- 1
+        elif target == "ground":
+            self.layers_ground[str(num_of_layers)] = layer
+            self.num_layers_ground -=- 1
+
+
+
+    def func_removeLayer(self, target):
+        print("want to remove wall layer")
+
+        if target == "wall":
+            layer_dict = self.layers_wall
+            num_of_layers = self.num_layers_wall
+        elif target == "roof":
+            layer_dict = self.layers_roof
+            num_of_layers = self.num_layers_roof
+        elif target == "ground":
+            layer_dict = self.layers_ground
+            num_of_layers = self.num_layers_ground
+
+
+        if num_of_layers == 0:
+            return
+        for i in ["txt_thickness", "lbl_thickness", "cB_material", "lbl_material", "gB"]:
+            layer_dict[str(num_of_layers-1)][i].setParent(None)
+
+        if target == "wall":
+            del self.layers_wall[str(num_of_layers-1)]
+            self.num_layers_wall -= 1
+        elif target == "roof":
+            del self.layers_roof[str(num_of_layers-1)]
+            self.num_layers_roof -= 1
+        elif target == "ground":
+            del self.layers_ground[str(num_of_layers-1)]
+            self.num_layers_ground -= 1
+        
 
 class heating_schedules(QtWidgets.QWidget):
     def __init__(self):
