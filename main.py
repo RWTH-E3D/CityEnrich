@@ -12,7 +12,7 @@ import pandas as pd
 # import of functions
 import gui_functions as gf
 import CityEnrich_selection as sel
-# import LDTtransformation as ldt
+import CityEnrich_enrichment as cee
 
 
 # setting system environment variable
@@ -543,8 +543,7 @@ class enrichment_main(QtWidgets.QWidget):
         self.btn_saveBuildingParams.clicked.connect(self.func_save)
         self.btn_overwrite.clicked.connect(self.func_overwrite)
         self.btn_construction.clicked.connect(self.func_construction)
-        # self.btn_toZero.clicked.connect(self.func_toZero)
-        # self.btn_toOne.clicked.connect(self.func_toOne)
+        self.btn_save_enrichment.clicked.connect(self.func_enrich)
         self.btn_zone.clicked.connect(self.func_thermalzones)
         self.btn_about.clicked.connect(self.func_about)
         self.btn_reset.clicked.connect(self.func_reset)
@@ -706,26 +705,32 @@ class enrichment_main(QtWidgets.QWidget):
     def func_overwrite(self):
         self.overwriteChange(not self.overWriteFlag)
 
-    def func_toZero(self):
-        print("to zero")
+    def func_enrich(self):
+        print("Starting Enrichment")
         start = time.time()
-        # ldt.transformationStart(self, 0, selAll)
+        cee.EnrichmentStart(self, selAll)
         end = time.time()
         print(end - start)
-
-    def func_toOne(self):
-        print("to one")
-        start = time.time()
-        # ldt.transformationStart(self, 1, selAll)
-        end = time.time()
-        print(end - start)
-
-    def func_toTwo(self):
-        print("to two")
-        start = time.time()
-        # ldt.transformationStart(self, 2, selAll)
-        end = time.time()
-        print(end - start)
+    # def func_toZero(self):
+    #     print("to zero")
+    #     start = time.time()
+    #     # ldt.transformationStart(self, 0, selAll)
+    #     end = time.time()
+    #     print(end - start)
+    #
+    # def func_toOne(self):
+    #     print("to one")
+    #     start = time.time()
+    #     # ldt.transformationStart(self, 1, selAll)
+    #     end = time.time()
+    #     print(end - start)
+    #
+    # def func_toTwo(self):
+    #     print("to two")
+    #     start = time.time()
+    #     # ldt.transformationStart(self, 2, selAll)
+    #     end = time.time()
+    #     print(end - start)
 
     def func_about(self):
         global posx, posy

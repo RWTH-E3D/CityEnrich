@@ -81,12 +81,11 @@ def progressLoD(self, max):
         self.pB_scanLoD.setValue(self.completedLoD)
 
 
-
 def progressTransfrom(self, max):
     """setting up progress bar"""
     while self.completedTransform < max:
         self.completedTransform += 1
-        self.pB_transformation.setValue(self.completedTransform)
+        self.pB_enrichment.setValue(self.completedTransform)
 
 
 
