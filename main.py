@@ -435,10 +435,6 @@ class enrichment_main(QtWidgets.QWidget):
         self.spacer = QtWidgets.QLabel('')
         self.p2Grid.addWidget(self.spacer, 0, 0, 1, 2)
 
-        self.btn_overwrite = QtWidgets.QPushButton('Enable overwrite')
-        self.p2Grid.addWidget(self.btn_overwrite, 0, 0, 1, 1)
-        self.btn_overwrite.setEnabled(True)
-
         self.btn_saveBuildingParams = QtWidgets.QPushButton('Save building parameters')
         self.p2Grid.addWidget(self.btn_saveBuildingParams, 0, 3, 1, 1)
 
@@ -541,7 +537,6 @@ class enrichment_main(QtWidgets.QWidget):
         self.vbox.addLayout(self.l2Grid)
 
         self.btn_saveBuildingParams.clicked.connect(self.func_save)
-        self.btn_overwrite.clicked.connect(self.func_overwrite)
         self.btn_construction.clicked.connect(self.func_construction)
         self.btn_save_enrichment.clicked.connect(self.func_enrich)
         self.btn_zone.clicked.connect(self.func_thermalzones)
@@ -681,13 +676,10 @@ class enrichment_main(QtWidgets.QWidget):
 
     def overwriteChange(self, state):
         if state:
-            self.btn_overwrite.setText('Disable overwrite')
             color = "green"
         else:
-            self.btn_overwrite.setText('Enable overwrite')
             color = "light gray"
         txt = "background-color: " + color
-        self.btn_overwrite.setStyleSheet(txt)
         self.overWriteFlag = state
         toChange = [self.txtB_buildingHeight, self.txtB_roofHeight, self.txtB_yearOfConstruction, self.txtB_SAG,
                     self.txtB_SBG]
@@ -1049,7 +1041,7 @@ class construction(QtWidgets.QWidget):
         self.wallGrid.addWidget(self.btn_wall_addLayer, 2, 3, 1, 1)
 
 
-        self.lbl_uvalue_walls = QtWidgets.QLabel('U-value:')
+        self.lbl_uvalue_walls = QtWidgets.QLabel('U-value [W/(m^2K)]:')
         self.wallGrid.addWidget(self.lbl_uvalue_walls, 3, 0, 1, 1)
 
         self.txt_uvalue_walls = QtWidgets.QLineEdit('')
@@ -1076,7 +1068,7 @@ class construction(QtWidgets.QWidget):
         self.roofGrid.addWidget(self.btn_roof_addLayer, 2, 3, 1, 1)
 
 
-        self.lbl_uvalue_roof = QtWidgets.QLabel('U-value:')
+        self.lbl_uvalue_roof = QtWidgets.QLabel('U-value [W/(m^2K)]:')
         self.roofGrid.addWidget(self.lbl_uvalue_roof, 3, 0, 1, 1)
 
         self.txt_uvalue_roof = QtWidgets.QLineEdit('')
@@ -1101,7 +1093,7 @@ class construction(QtWidgets.QWidget):
         self.btn_ground_addLayer = QtWidgets.QPushButton("add layer")
         self.groundGrid.addWidget(self.btn_ground_addLayer, 2, 3, 1, 1)
 
-        self.lbl_uvalue_ground = QtWidgets.QLabel('U-value:')
+        self.lbl_uvalue_ground = QtWidgets.QLabel('U-value [W/(m^2K)]:')
         self.groundGrid.addWidget(self.lbl_uvalue_ground, 3, 0, 1, 1)
 
         self.txt_uvalue_ground = QtWidgets.QLineEdit('')
@@ -1115,23 +1107,25 @@ class construction(QtWidgets.QWidget):
         self.windowsGrid = QtWidgets.QGridLayout()
         self.gB_enrichment_windows.setLayout(self.windowsGrid)
 
-        self.lbl_window2wallRatio = QtWidgets.QLabel("Window to wall ratio:")
+        self.lbl_window2wallRatio = QtWidgets.QLabel("Window to wall ratio [%]:")
         self.windowsGrid.addWidget(self.lbl_window2wallRatio, 0, 0, 1, 1)
+        # values between 0 and 100
 
         self.txt_window2wallRatio = QtWidgets.QLineEdit('')
         self.windowsGrid.addWidget(self.txt_window2wallRatio, 0, 1, 1, 1)
 
         self.lbl_transmittanceFraction_windows = QtWidgets.QLabel('Transmittance Fraction:')
         self.windowsGrid.addWidget(self.lbl_transmittanceFraction_windows, 0, 2, 1, 1)
+        # values between 0 and 1
 
         self.txt_transmittance_fraction_windows = QtWidgets.QLineEdit('')  # ToDo: Based on the description combo?
         self.windowsGrid.addWidget(self.txt_transmittance_fraction_windows, 0, 3, 1, 1)
 
-        self.lbl_wavelengthrange_windows = QtWidgets.QLabel('Wave Length Range:')
-        self.windowsGrid.addWidget(self.lbl_wavelengthrange_windows, 1, 0, 1, 1)
+        self.lbl_uvalue_windows = QtWidgets.QLabel('U-value [W/(m^2K)]:')  # ToDo: Currently it is just a combobox
+        self.windowsGrid.addWidget(self.lbl_uvalue_windows, 1, 0, 1, 1)
 
-        self.txt_wavelengthrange_windows = QtWidgets.QLineEdit('')
-        self.windowsGrid.addWidget(self.txt_wavelengthrange_windows, 1, 1, 1, 1)
+        self.txt_uvalue_windows = QtWidgets.QLineEdit('')
+        self.windowsGrid.addWidget(self.txt_uvalue_windows, 1, 1, 1, 1)
 
         self.lbl_glazingratio_windows = QtWidgets.QLabel('Glazing Ratio:')
         self.windowsGrid.addWidget(self.lbl_glazingratio_windows, 1, 2, 1, 1)
@@ -1139,11 +1133,7 @@ class construction(QtWidgets.QWidget):
         self.txt_glazingratio_windows = QtWidgets.QLineEdit('')
         self.windowsGrid.addWidget(self.txt_glazingratio_windows, 1, 3, 1, 1)
 
-        self.lbl_uvalue_windows = QtWidgets.QLabel('U-value:')  # ToDo: Currently it is just a combobox
-        self.windowsGrid.addWidget(self.lbl_uvalue_windows, 2, 0, 1, 1)
-
-        self.txt_uvalue_windows = QtWidgets.QLineEdit('')
-        self.windowsGrid.addWidget(self.txt_uvalue_windows, 2, 1, 1, 3)
+        
 
         
 
@@ -1220,7 +1210,7 @@ class construction(QtWidgets.QWidget):
         layer["cB_material"].addItems(self.materialNames)
         layer["layout"].addWidget(layer["cB_material"], 0, 1, 1, 1)
 
-        layer["lbl_thickness"] = QtWidgets.QLabel('Thickness:')
+        layer["lbl_thickness"] = QtWidgets.QLabel('Thickness [m]:')
         layer["layout"].addWidget(layer["lbl_thickness"], 0, 2, 1, 1)
 
         layer["txt_thickness"] = QtWidgets.QLineEdit('')
@@ -1307,31 +1297,35 @@ class heating_schedules(QtWidgets.QWidget):
         self.heatingGrid.addWidget(self.lbl_date_begin, 0, 0, 1, 1)
 
         self.txt_date_begin = QtWidgets.QLineEdit('') #ToDo: Add calander selection (Simon)
+        self.txt_date_begin.setPlaceholderText("e.g.: 2022-01-01")
         self.heatingGrid.addWidget(self.txt_date_begin, 0, 1, 1, 1)
 
         self.lbl_date_end = QtWidgets.QLabel('End Date:')
         self.heatingGrid.addWidget(self.lbl_date_end, 0, 2, 1, 1)
 
         self.txt_date_end = QtWidgets.QLineEdit('')  # ToDo: Add calander selection (Simon)
+        self.txt_date_end.setPlaceholderText("e.g.: 2022-12-31")
         self.heatingGrid.addWidget(self.txt_date_end, 0, 3, 1, 1)
 
         self.lbl_hour_begin = QtWidgets.QLabel('Begin Hour:')
         self.heatingGrid.addWidget(self.lbl_hour_begin, 1, 0, 1, 1)
 
         self.txt_hour_begin = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.txt_hour_begin.setPlaceholderText("e.g.: 00:00:00")
         self.heatingGrid.addWidget(self.txt_hour_begin, 1, 1, 1, 1)
 
         self.lbl_hour_end = QtWidgets.QLabel('End Hour:')
         self.heatingGrid.addWidget(self.lbl_hour_end, 1, 2, 1, 1)
 
         self.txt_hour_end = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
+        self.txt_hour_end.setPlaceholderText("e.g.: 23:59:59")
         self.heatingGrid.addWidget(self.txt_hour_end, 1, 3, 1, 1)
 
-        self.lbl_time_interval = QtWidgets.QLabel('Time Interval and Unit') # ToDo: (Max) do we make the unit separate?
-        self.heatingGrid.addWidget(self.lbl_time_interval, 2, 0, 1, 1)
+        self.lbl_interpolation_type = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
+        self.heatingGrid.addWidget(self.lbl_interpolation_type, 2, 0, 1, 1)
 
-        self.txt_time_interval = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
-        self.heatingGrid.addWidget(self.txt_time_interval, 2, 1, 1, 1)
+        self.txt_interpolation = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
+        self.heatingGrid.addWidget(self.txt_interpolation, 2, 1, 1, 1)
 
         self.lbl_acquisition_method = QtWidgets.QLabel('Acquisition Method:')
         self.heatingGrid.addWidget(self.lbl_acquisition_method, 2, 2, 1, 1)
@@ -1339,17 +1333,12 @@ class heating_schedules(QtWidgets.QWidget):
         self.txt_acquisition_method = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
         self.heatingGrid.addWidget(self.txt_acquisition_method, 2, 3, 1, 1)
 
-        self.lbl_interpolation_type = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
-        self.heatingGrid.addWidget(self.lbl_interpolation_type, 3, 0, 1, 1)
-
-        self.txt_interpolation = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
-        self.heatingGrid.addWidget(self.txt_interpolation, 3, 1, 1, 1)
 
         self.lbl_thematic_description = QtWidgets.QLabel('Thematic Description:')
-        self.heatingGrid.addWidget(self.lbl_thematic_description, 3, 2, 1, 1)
+        self.heatingGrid.addWidget(self.lbl_thematic_description, 3, 0, 1, 1)
 
         self.txt_thematic_description = QtWidgets.QLineEdit('')  # ToDo: (Max) what do wanna add here?
-        self.heatingGrid.addWidget(self.txt_thematic_description, 3, 3, 1, 1)
+        self.heatingGrid.addWidget(self.txt_thematic_description, 3, 1, 1, 3)
 
         # self.lbl_daytype = QtWidgets.QLabel('')  # ToDo: (Max) do we make the unit separate?
         # self.heatingGrid.addWidget(self.lbl_daytype, 4, 0, 1, 1)
