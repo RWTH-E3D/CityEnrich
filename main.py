@@ -960,6 +960,9 @@ class thermalzones(QtWidgets.QWidget):
     def func_exit(self):
         gf.close_application(self)
 
+
+
+
 class construction(QtWidgets.QWidget):
     def __init__(self):
         super(construction, self).__init__()
@@ -1225,8 +1228,11 @@ class construction(QtWidgets.QWidget):
         layer["lbl_thickness"] = QtWidgets.QLabel('Thickness [m]:')
         layer["layout"].addWidget(layer["lbl_thickness"], 0, 2, 1, 1)
 
-        layer["txt_thickness"] = QtWidgets.QLineEdit('')
-        layer["layout"].addWidget(layer["txt_thickness"], 0, 3, 1, 1)
+        layer["sB_thickness"] = QtWidgets.QDoubleSpinBox()
+        layer["sB_thickness"].setRange(0, 0.5)
+        layer["sB_thickness"].setSingleStep(0.001)
+        layer["sB_thickness"].setValue(0.01)
+        layer["layout"].addWidget(layer["sB_thickness"], 0, 3, 1, 1)
 
 
         if target == "wall":
@@ -1257,7 +1263,7 @@ class construction(QtWidgets.QWidget):
 
         if num_of_layers == 0:
             return
-        for i in ["txt_thickness", "lbl_thickness", "cB_material", "lbl_material", "gB"]:
+        for i in ["sB_thickness", "lbl_thickness", "cB_material", "lbl_material", "gB"]:
             layer_dict[str(num_of_layers-1)][i].setParent(None)
 
         if target == "wall":
