@@ -116,6 +116,7 @@ def select_expPath(self):
     else:
         gf.messageBox(self, "Important", "Valid Exportfolder not selected")
 
+
 def getIndexFromBuildingDict(self, buildingname):
     """gets the index of the building within the buildingDict"""
     for key in self.buildingDict:
@@ -130,6 +131,15 @@ def getNewTree(self, filename):
     ntree = ET.parse(os.path.join(self.inpDir, filename), parser)
     nroot_E = ntree.getroot()
     nnss = nroot_E.nsmap
+    print(nnss)
+
+    """add EnergyADE Namespace and schemaLocation"""
+    nnss['energy'] = 'http://www.sig3d.org/citygml/2.0/energy/1.0'
+    schemaLocation = "http://www.opengis.net/citygml/2.0 http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd"
+    print(nroot_E.find('xsi:schemaLocation', nnss))
+    attr = nnss['xsi']
+    nroot_E.set(attr, schemaLocation)
+    # nroot_E.attrib["./xsi:schemaLocation"] = schemaLocation
 
     # get envelope elements
     envelope_E = nroot_E.find('./gml:boundedBy/gml:Envelope', nnss)
@@ -260,6 +270,7 @@ def writeTree(self, rootElement, nss, lcorner, ucorner, minimum, maximum, baseNa
     ucorner.text = ' '.join(map(str, maximum))
 
     name_E = rootElement.find('gml:name', nss)
+
     if name_E != None:
         if name_E.text == baseName:
             name_E.text = exportName.split(".gml")[0]

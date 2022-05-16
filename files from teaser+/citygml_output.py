@@ -11,7 +11,7 @@ import os
 import lxml.etree as ET
 from datetime import date, datetime
 import uuid
-# import teaser.data.output.citygml_classes as cl
+import teaser.data.output.citygml_classes as cl
 # import pyxb
 # import pyxb.utils
 # import pyxb.namespace
