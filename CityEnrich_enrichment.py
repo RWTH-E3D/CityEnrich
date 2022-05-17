@@ -12,9 +12,8 @@ import CityEnrich_selection as sel
 import twod_operations as twod
 
 """Testing Dataframe"""
-
-thermal_zone = pd.DataFrame()
-thermal_zone["volume"] = 20
+d = {'volume': [700], 'area': [250]}
+thermal_zone = pd.DataFrame(data=d)
 
 
 def checkIfStringIsNumber(self, string, t=float):
@@ -396,17 +395,9 @@ def enrichFile(self, filename, dfFile):
     tree_copy = copy.deepcopy(tree)
     nroot_E = add_namespace(tree_copy, 'energy', 'http://www.sig3d.org/citygml/2.0/energy/1.0')
     nnss = nroot_E.nsmap
-    print(nnss)
-
-
-    # print(nroot_E.find('xsi:schemaLocation', nnss))
-    # attr = nnss['xsi']
-    # nroot_E.set(attr, schemaLocation)
-    # nroot_E.attrib["{" + nnss['xsi'] + "}schemaLocation"] = schemaLocation
 
     # iterate over all buildings in the file
     num_of_buildings = len(root_E.findall('core:cityObjectMember/bldg:Building', nss))
-    print(num_of_buildings)
     i = 0
     while i < num_of_buildings:
         building_E = nroot_E.findall('core:cityObjectMember/bldg:Building', nnss)[i]
@@ -434,7 +425,7 @@ def enrichFile(self, filename, dfFile):
             if len(dfMain.index > 1):
                 setBuildingElements(building_E, nnss, dfMain)
                 _set_gml_volume_lxml(building_E, nnss, thermal_zone)
-
+                _set_gml_floor_area_lxml(building_E, nnss, thermal_zone)
             # if self.rB_individualFiles.isChecked():
             #     # first save tree to file
             #     baseName = os.path.splitext(filename)[0]
@@ -461,18 +452,18 @@ def _set_gml_volume_lxml(building_E, nsClass, thermal_zone):
     gml_volume_type = ET.SubElement(gml_volume, ET.QName(nsClass['energy'], 'VolumeType'))
     ET.SubElement(gml_volume_type, ET.QName(nsClass['energy'], 'type')).text = "grossVolume"
     ET.SubElement(gml_volume_type, ET.QName(nsClass['energy'], 'value'), attrib={'uom': "m3"}).text \
-        = str(thermal_zone.volume)
+        = str(thermal_zone.volume[0].item())
 
 
 def _set_gml_floor_area_lxml(building_E, nsClass,thermal_zone):
 
     # declaring Floor Area Object
 
-    gml_floor_area = ET.SubElement(building_E, ET.QName(nsClass.energy, 'floorArea'))
-    gml_floor_area_type = ET.SubElement(gml_floor_area, ET.QName(nsClass.energy, 'FloorArea'))
-    ET.SubElement(gml_floor_area_type, ET.QName(nsClass.energy, 'type')).text = "grossFloorArea"
-    ET.SubElement(gml_floor_area_type, ET.QName(nsClass.energy, 'value'), attrib={'uom': "m2"}).text \
-        = str(thermal_zone.area)
+    gml_floor_area = ET.SubElement(building_E, ET.QName(nsClass['energy'], 'floorArea'))
+    gml_floor_area_type = ET.SubElement(gml_floor_area, ET.QName(nsClass['energy'], 'FloorArea'))
+    ET.SubElement(gml_floor_area_type, ET.QName(nsClass['energy'], 'type')).text = "grossFloorArea"
+    ET.SubElement(gml_floor_area_type, ET.QName(nsClass['energy'], 'value'), attrib={'uom': "m2"}).text \
+        = str(thermal_zone.area[0].item())
 
 
 def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
