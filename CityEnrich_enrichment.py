@@ -6,7 +6,7 @@ import math
 import lxml.etree as ET
 import uuid
 import copy
-# import of functions
+from CityEnrich_get_surfaces import get_gml_surfaces, sort_outer_surfaces
 import gui_functions as gf
 import CityEnrich_selection as sel
 import twod_operations as twod
@@ -432,9 +432,9 @@ def enrichFile(self, filename, dfFile):
             # check if new attributes have been set
             if len(dfMain.index > 1):
                 setBuildingElements(building_E, nnss, dfMain)
-                # _set_gml_volume_lxml(building_E, nnss, thermal_zone)
-                # _set_gml_floor_area_lxml(building_E, nnss, thermal_zone)
-                _set_gml_thermal_zone_lxml(building_E,nnss, thermal_zone)
+                _set_gml_thermal_zone_lxml(building_E, nnss, thermal_zone)
+                Surfaces_lists = get_gml_surfaces(building_E, nnss)
+                print(Surfaces_lists)
             # if self.rB_individualFiles.isChecked():
             #     # first save tree to file
             #     baseName = os.path.splitext(filename)[0]
