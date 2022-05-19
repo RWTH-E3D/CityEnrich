@@ -24,13 +24,17 @@ b = {'heating': ['20 20 20 20 20 20 20 20 20 20 20 ...'],
 schedules = pd.DataFrame(data=b)
 
 
-def checkIfStringIsNumber(self, string, t=float):
+def checkIfStringIsNumber(self, string, t=float, loc=""):
     """checks if string can be converted to a number"""
     try:
         t(string)
         return True
     except:
-        msg = 'Unable to safe! "' + string + '" is not a valid input.'
+        if loc != "":
+            location = f" from {loc} "
+        else:
+            location = ""
+        msg = f'Unable to safe! {string}{location} is not a valid input.'
         gf.messageBox(self, 'ERROR', msg)
         return False
 
@@ -307,7 +311,8 @@ def EnrichmentStart(self, selAll):
     # get data
     dataForFrame = []
     for index in self.buildingDict:
-        splits = self.buildingDict[index]["buildingname"].split('/')
+        buildingName = self.buildingDict[index]["buildingname"]
+        splits = buildingName.split('/')
         if len(splits) > 1:
             bpname = splits[1]
         else:
@@ -353,7 +358,10 @@ def EnrichmentStart(self, selAll):
         thermalZone = self.buildingDict[index]["thermalzones"]
         
         # getting floor area
-        row.append(thermalZone.txt_area.text())
+        if thermalZone.txt_area.text() != "" and checkIfStringIsNumber(self, thermalZone.txt_area.text(), float, f"floor area ({buildingName})"):
+            row.append(float(thermalZone.txt_area.text()))
+        else:
+            row.append(None)
 
         if thermalZone.rB_Grossfloorarea.isChecked():
             area_type = "gross"
@@ -364,7 +372,11 @@ def EnrichmentStart(self, selAll):
         row.append(area_type)
 
         # getting volume
-        row.append(thermalZone.txt_volume.text())
+        if thermalZone.txt_volume.text() != "" and checkIfStringIsNumber(self, thermalZone.txt_volume.text(), float, f"volume ({buildingName})"):
+            row.append(float(thermalZone.txt_volume.text()))
+        else:
+            row.append(None)
+
 
         if thermalZone.rB_Grossvolume.isChecked():
             volume_type = "gross"
@@ -409,15 +421,25 @@ def EnrichmentStart(self, selAll):
             row.append(target.cB_acquisition_method.currentText())
 
             # description
-            row.append(target.txt_thematic_description.text())
+            if target.txt_thematic_description.text() != "":
+                row.append(target.txt_thematic_description.text())
+            else:
+                row.append(None)
 
             # get files To-Do
-            """To-Do read the files"""
-            row.append(target.txt_wkday.text())
-            row.append(target.txt_wkend.text())
+            if target.txt_wkday.text() != "":
+                row.append(target.txt_wkday.text())
+            else:
+                row.append(None)
+            if target.txt_wkend.text() != "":
+                row.append(target.txt_wkend.text())
+            row.append(None)
 
             # get unit
-            row.append(target.txt_unit.text())
+            if target.txt_unit.text() != "":
+                row.append(target.txt_unit.text())
+            else:
+                row.append(None)
             
             # SI or fraction
             if target.radio_SIunit.isChecked():
@@ -430,16 +452,28 @@ def EnrichmentStart(self, selAll):
 
             if key in ["appl", "ligh", "occu"]:
                 # convective fraction
-                row.append(target.txt_convectiveFraction.text())
+                if target.txt_convectiveFraction.text() != "" and checkIfStringIsNumber(self, target.txt_convectiveFraction.text(), loc=f"{key}_convective_fraction {buildingName}"):
+                    row.append(float(target.txt_convectiveFraction.text()))
+                else:
+                    row.append(None)
                 
                 # radiant fraction
-                row.append(target.txt_radiantFraction.text())
+                if target.txt_radiantFraction.text() != "" and checkIfStringIsNumber(self, target.txt_radiantFraction.text(), loc=f"{key}_radiant_fraction {buildingName}"):
+                    row.append(float(target.txt_radiantFraction.text()))
+                else:
+                    row.append(None)
                 
                 # total value
-                row.append(target.txt_totalValue.text())
+                if target.txt_totalValue.text() != "" and checkIfStringIsNumber(self, target.txt_totalValue.text(), loc=f"{key}_total_value {buildingName}"):
+                    row.append(float(target.txt_totalValue.text()))
+                else:
+                    row.append(None)
             
                 if key == "occu":
-                    row.append(target.txt_numberOccupant.text())
+                    if target.txt_numberOccupant.text() != "" and checkIfStringIsNumber(self, target.txt_numberOccupant.text(), t=int, loc=f"{key}_number_of_occupants {buildingName}"):
+                        row.append(int(target.txt_numberOccupant.text()))
+                    else:
+                        row.append(None)
 
 
         # construction stuff here
@@ -448,16 +482,38 @@ def EnrichmentStart(self, selAll):
         for u_txtB, side in [[construct.txt_uvalue_walls, construct.layers_wall], [construct.txt_uvalue_roof, construct.layers_roof], [construct.txt_uvalue_ground, construct.layers_ground]]:
             comp = []
             for layer in side.values():
-                comp.append([layer["cB_material"].currentText(), layer["sB_thickness"].value()])
-            row.append(comp)
-            row.append(u_txtB.text())
+                if layer["cB_material"].currentText() != "":
+                    comp.append([layer["cB_material"].currentText(), layer["sB_thickness"].value()])
+            if comp != []:
+                row.append(comp)
+            else:
+                row.append(None)
+
+            if u_txtB.text() != "" and checkIfStringIsNumber(self, u_txtB.text(), float, "u_value in constuct {buildingname}"):
+                row.append(float(u_txtB.text()))
+            else:
+                row.append(None)
 
         # window values
-        row.append(construct.txt_window2wallRatio.text())
-        row.append(construct.txt_transmittance_fraction_windows.text())
-        row.append(construct.txt_uvalue_windows.text())
-        row.append(construct.txt_glazingratio_windows.text())
+        if construct.txt_window2wallRatio.text() != "" and checkIfStringIsNumber(self, construct.txt_window2wallRatio.text(), loc=f"window2wallratio {buildingName}"):
+            row.append(float(construct.txt_window2wallRatio.text()))
+        else:
+            row.append(None)
 
+        if construct.txt_transmittance_fraction_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_transmittance_fraction_windows.text(), loc=f"transmit_fract_window{buildingName}"):
+            row.append(float(construct.txt_transmittance_fraction_windows.text()))
+        else:
+            row.append(None)
+
+        if construct.txt_uvalue_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_uvalue_windows.text(), loc=f"u_value_window {buildingName}"):
+            row.append(float(construct.txt_uvalue_windows.text()))
+        else:
+            row.append(None)
+
+        if construct.txt_glazingratio_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_glazingratio_windows.text(), loc=f"glazingratio_window {buildingName}"):
+            row.append(float(construct.txt_glazingratio_windows.text()))
+        else:
+            row.append(None)
         
 
         
