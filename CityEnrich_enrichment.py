@@ -10,6 +10,7 @@ from CityEnrich_get_surfaces import get_gml_surfaces, sort_outer_surfaces
 import gui_functions as gf
 import CityEnrich_selection as sel
 import twod_operations as twod
+import numpy as np
 
 """Testing Dataframe"""
 d = {'volume': [700], 'area': [250]}
@@ -54,7 +55,7 @@ def onSave(self, building):
     if self.txtB_buildingHeight.text() != '' and checkIfStringIsNumber(self, self.txtB_buildingHeight.text()):
         params["bHeight"] = float(self.txtB_buildingHeight.text())
     else:
-        params["bHeight"] = None
+        params["bHeight"] = np.nan
 
     # roofHeight
     if self.txtB_roofHeight.text() != '':
@@ -76,7 +77,7 @@ def onSave(self, building):
             params["rHeight"] = float(self.txtB_roofHeight.text())
 
     else:
-        params["rHeight"] = None
+        params["rHeight"] = np.nan
 
     # roofType
     if self.cB_roofType.currentIndex() != 0:
@@ -110,13 +111,13 @@ def onSave(self, building):
     if self.txtB_SAG.text() != '' and checkIfStringIsNumber(self, self.txtB_SAG.text(), int):
         params["SAG"] = int(self.txtB_SAG.text())
     else:
-        params["SAG"] = None
+        params["SAG"] = np.nan
 
     # SBG
     if self.txtB_SBG.text() != '' and checkIfStringIsNumber(self, self.txtB_SBG.text(), int):
         params["SBG"] = int(self.txtB_SBG.text())
     else:
-        params["SBG"] = None
+        params["SBG"] = np.nan
 
     # remvoing duplicates to avoid errors
     if index != -1:
@@ -312,7 +313,7 @@ def get_non_LDT_data(self, targetDict, buildingName):
     if thermalZone.txt_area.text() != "" and checkIfStringIsNumber(self, thermalZone.txt_area.text(), float, f"floor area ({buildingName})"):
         row.append(float(thermalZone.txt_area.text()))
     else:
-        row.append(None)
+        row.append(np.nan)
 
     if thermalZone.rB_Grossfloorarea.isChecked():
         area_type = "gross"
@@ -326,7 +327,7 @@ def get_non_LDT_data(self, targetDict, buildingName):
     if thermalZone.txt_volume.text() != "" and checkIfStringIsNumber(self, thermalZone.txt_volume.text(), float, f"volume ({buildingName})"):
         row.append(float(thermalZone.txt_volume.text()))
     else:
-        row.append(None)
+        row.append(np.nan)
 
 
     if thermalZone.rB_Grossvolume.isChecked():
@@ -413,26 +414,26 @@ def get_non_LDT_data(self, targetDict, buildingName):
             if target.txt_convectiveFraction.text() != "" and checkIfStringIsNumber(self, target.txt_convectiveFraction.text(), loc=f"{key}_convective_fraction {buildingName}"):
                 row.append(float(target.txt_convectiveFraction.text()))
             else:
-                row.append(None)
+                row.append(np.nan)
             
             # radiant fraction
             if target.txt_radiantFraction.text() != "" and checkIfStringIsNumber(self, target.txt_radiantFraction.text(), loc=f"{key}_radiant_fraction {buildingName}"):
                 row.append(float(target.txt_radiantFraction.text()))
             else:
-                row.append(None)
+                row.append(np.nan)
             
             # total value
             if target.txt_totalValue.text() != "" and checkIfStringIsNumber(self, target.txt_totalValue.text(), loc=f"{key}_total_value {buildingName}"):
                 row.append(float(target.txt_totalValue.text()))
             else:
-                row.append(None)
+                row.append(np.nan)
         
             # get number of occupants
             if key == "occu":
                 if target.txt_numberOccupant.text() != "" and checkIfStringIsNumber(self, target.txt_numberOccupant.text(), t=int, loc=f"{key}_number_of_occupants {buildingName}"):
                     row.append(int(target.txt_numberOccupant.text()))
                 else:
-                    row.append(None)
+                    row.append(np.nan)
 
 
     # construction stuff here
@@ -451,28 +452,28 @@ def get_non_LDT_data(self, targetDict, buildingName):
         if u_txtB.text() != "" and checkIfStringIsNumber(self, u_txtB.text(), float, "u_value in constuct {buildingname}"):
             row.append(float(u_txtB.text()))
         else:
-            row.append(None)
+            row.append(np.nan)
 
     # window values
     if construct.txt_window2wallRatio.text() != "" and checkIfStringIsNumber(self, construct.txt_window2wallRatio.text(), loc=f"window2wallratio {buildingName}"):
         row.append(float(construct.txt_window2wallRatio.text()))
     else:
-        row.append(None)
+        row.append(np.nan)
 
     if construct.txt_transmittance_fraction_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_transmittance_fraction_windows.text(), loc=f"transmit_fract_window{buildingName}"):
         row.append(float(construct.txt_transmittance_fraction_windows.text()))
     else:
-        row.append(None)
+        row.append(np.nan)
 
     if construct.txt_uvalue_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_uvalue_windows.text(), loc=f"u_value_window {buildingName}"):
         row.append(float(construct.txt_uvalue_windows.text()))
     else:
-        row.append(None)
+        row.append(np.nan)
 
     if construct.txt_glazingratio_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_glazingratio_windows.text(), loc=f"glazingratio_window {buildingName}"):
         row.append(float(construct.txt_glazingratio_windows.text()))
     else:
-        row.append(None)
+        row.append(np.nan)
 
     return row
     
@@ -565,6 +566,9 @@ def EnrichmentStart(self, selAll):
                                'win2wall', 'winTrans','winU', 'winGlazing'
                                ])
     print(df)
+    print(df['occu_interpol_method'])
+    print(df['occu_conv_frac'])
+    return
     
 
     # only consider buildings which are not in the target LoD
