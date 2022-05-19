@@ -55,7 +55,7 @@ def onSave(self, building):
     if self.txtB_buildingHeight.text() != '' and checkIfStringIsNumber(self, self.txtB_buildingHeight.text()):
         params["bHeight"] = float(self.txtB_buildingHeight.text())
     else:
-        params["bHeight"] = np.nan
+        params["bHeight"] = None
 
     # roofHeight
     if self.txtB_roofHeight.text() != '':
@@ -77,7 +77,7 @@ def onSave(self, building):
             params["rHeight"] = float(self.txtB_roofHeight.text())
 
     else:
-        params["rHeight"] = np.nan
+        params["rHeight"] = None
 
     # roofType
     if self.cB_roofType.currentIndex() != 0:
@@ -111,13 +111,13 @@ def onSave(self, building):
     if self.txtB_SAG.text() != '' and checkIfStringIsNumber(self, self.txtB_SAG.text(), int):
         params["SAG"] = int(self.txtB_SAG.text())
     else:
-        params["SAG"] = np.nan
+        params["SAG"] = None
 
     # SBG
     if self.txtB_SBG.text() != '' and checkIfStringIsNumber(self, self.txtB_SBG.text(), int):
         params["SBG"] = int(self.txtB_SBG.text())
     else:
-        params["SBG"] = np.nan
+        params["SBG"] = None
 
     # remvoing duplicates to avoid errors
     if index != -1:
@@ -537,8 +537,9 @@ def EnrichmentStart(self, selAll):
         
         # checks if None entries can be replaced with values from the defaults list
         for i, entry in enumerate(non_LDT_data):
-            if entry == None and non_LDT_defaults[i] != None:
+            if (entry == None or pd.isna(entry)) and not (non_LDT_defaults[i] == None or pd.isna(non_LDT_defaults[i])):
                 non_LDT_data[i] = non_LDT_defaults[i]
+                
         row.extend(non_LDT_data)
         
 
