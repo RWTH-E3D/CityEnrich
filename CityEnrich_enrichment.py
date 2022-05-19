@@ -305,6 +305,7 @@ def writeTree(self, rootElement, nss, lcorner, ucorner, minimum, maximum, baseNa
         with open(fullFilename, 'w') as f:
             f.write(content)
 
+
 def get_non_LDT_data(self, targetDict, buildingName):
     """gathering non LDT data from GUI"""
     row = []
@@ -478,9 +479,19 @@ def get_non_LDT_data(self, targetDict, buildingName):
     return row
     
 
-
 def EnrichmentStart(self, selAll):
     """starting the Enrichment Process"""
+
+    """Load materials"""
+    # TODO: must exist a better way to get to Material dict than to laod it twice
+    global materialdict
+    global materials
+    # loading materials from file
+    materials = pd.read_json("files from teaser+\MaterialTemplates.json")
+    materialDict = {}
+    for i in materials.columns:
+        materialDict[materials[i]["name"]] = i
+    materialdict = materialDict
 
     # get defaults for non LDT data
     non_LDT_defaults = get_non_LDT_data(self, self.buildingDict_all, "'all (selected) buildings'")
@@ -894,39 +905,42 @@ def _set_gml_construction_lxml(element, nsClass, material_ids, uvalue, layers):
 
     for layer_count in layers:
         print(layer_count)
+        print(materialdict[layer_count[0]])
+        material_id = materialdict[layer_count[0]]
+        layer_id = uuid.uuid1()
         layer_gml = ET.SubElement(construction_gml, ET.QName(nsClass['energy'], "layer"))
         Layer_gml = ET.SubElement(layer_gml, ET.QName(nsClass['energy'], "Layer"),
-                                  attrib={ET.QName(nsClass['gml'], 'id'): str("GML_" + str(layer_count.internal_id))})
+                                  attrib={ET.QName(nsClass['gml'], 'id'): str("GML_" + str(layer_id))})
         layer_comp = ET.SubElement(Layer_gml, ET.QName(nsClass['energy'], "layerComponent"))
         Layer_comp = ET.SubElement(layer_comp, ET.QName(nsClass['energy'], "LayerComponent"),
                                   attrib={ET.QName(nsClass['gml'], 'id'):
-                                              str("GML_" + str(layer_count.internal_id) + "_1")})
+                                              str("GML_" + str(layer_id) + "_1")})
         ET.SubElement(Layer_comp, ET.QName(nsClass['energy'], "areaFraction"), attrib={'uom': "scale"}).text = str(1)
         ET.SubElement(Layer_comp, ET.QName(nsClass['energy'], "thickness"), attrib={'uom': "m"}).text = \
-            str(layer_count.thickness)
+            str(layer_count[1])
         ET.SubElement(Layer_comp, ET.QName(nsClass['energy'], 'material'),
-                      attrib={ET.QName(nsClass.xlink, 'href'):
-                                  str("#" + "GML_" + layer_count.material.material_id)})
+                      attrib={ET.QName(nsClass['xlink'], 'href'):
+                                  str("#" + "GML_" + material_id)})
 
-        if layer_count.material.material_id in material_ids:
+        if material_id in material_ids:
             pass
         else:
-            material_ids.append(layer_count.material.material_id)
+            material_ids.append(material_id)
 
             feature_member_material = ET.SubElement(nroot_E, ET.QName(nsClass['gml'], 'featureMember'))
             material_gml = ET.SubElement(feature_member_material, ET.QName(nsClass['energy'], 'SolidMaterial'),
                                              attrib={ET.QName(nsClass['gml'], 'id'):
-                                                         str("GML_" + layer_count.material.material_id)})
+                                                         str("GML_" + material_id)})
             ET.SubElement(material_gml, ET.QName(nsClass['gml'], "description")).text = \
-                str(layer_count.material.name)
+                str(layer_count[0])
             ET.SubElement(material_gml, ET.QName(nsClass['gml'], "name")).text = \
-                str(layer_count.material.name)
+                str(layer_count[0])
             ET.SubElement(material_gml, ET.QName(nsClass['energy'], "conductivity"), attrib={'uom': "W/K*m"}).text = \
-                str(layer_count.material.thermal_conduc)
+                str(materials[material_id]["thermal_conduc"])
             ET.SubElement(material_gml, ET.QName(nsClass['energy'], "density"), attrib={'uom': "kg/m3"}).text = \
-                str(layer_count.material.density)
+                str(materials[material_id]["density"])
             ET.SubElement(material_gml, ET.QName(nsClass['energy'], "specificHeat"), attrib={'uom': "kJ/K*kg"}).text = \
-                str(layer_count.material.heat_capac)
+                str(materials[material_id]["heat_capac"])
 
     return construction_id
 
