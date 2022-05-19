@@ -439,9 +439,10 @@ def get_min_max_elevation(element, nss, curMin=math.inf, curMax=-math.inf):
     return minim, maxim
 
 
-
-def getIndexFromBuildingDict(self, buildingname):
-    """gets the index of the building within the buildingDict"""
-    for key in self.buildingDict:
-        if buildingname.split("/")[1] == self.buildingDict[key]["buildingname"]:
-            return key
+# this function is also present in CityEnrich_enrichment.py so I changed all the connections to that file on 22/05/18 (simon)
+# so this code can probably be deleted
+# def getIndexFromBuildingDict(self, buildingname):
+#     """gets the index of the building within the buildingDict"""
+#     for key in self.buildingDict:
+#         if buildingname.split("/")[1] == self.buildingDict[key]["buildingname"]:
+#             return key

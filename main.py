@@ -314,22 +314,20 @@ class enrichment_main(QtWidgets.QWidget):
         self.cB_curBuilding.addItems(['all (selected) buildings'])
         self.pGrid.addWidget(self.cB_curBuilding, 0, 1, 1, 2)
 
-        presenetLoDs = []
         # adding selected buildings to the comboBox
         for key in buildingDict:
-            if selAll:
+            if selAll or buildingDict[key]["selected"]:
                 self.cB_curBuilding.insertItem(self.cB_curBuilding.count(),
                                                buildingDict[key]["filename"] + "/" + buildingDict[key]["buildingname"])
-                if buildingDict[key]["values"]["LoD"] not in presenetLoDs:
-                    presenetLoDs.append(buildingDict[key]["values"]["LoD"])
-            elif buildingDict[key]["selected"]:
-                self.cB_curBuilding.insertItem(self.cB_curBuilding.count(),
-                                               buildingDict[key]["filename"] + "/" + buildingDict[key]["buildingname"])
-                if buildingDict[key]["values"]["LoD"] not in presenetLoDs:
-                    presenetLoDs.append(buildingDict[key]["values"]["LoD"])
+                buildingDict[key]["thermalzones"] = thermalzones()
+                buildingDict[key]["construction"] = construction()
+                # if buildingDict[key]["values"]["LoD"] not in presenetLoDs:
+                #     presenetLoDs.append(buildingDict[key]["values"]["LoD"])
             else:
                 pass
         self.buildingDict = buildingDict
+
+        self.buildingDict_all = {"thermalzones": thermalzones(), "construction": construction()}
 
         # update title of groubbox according to number of buildings
         ttl = 'Building parameters - ' + str(self.cB_curBuilding.count() - 1) + ' buildings'
@@ -430,15 +428,6 @@ class enrichment_main(QtWidgets.QWidget):
         # self.gGrid.addWidget(self.cB_cooled, 4, 3, 1, 1)
 
 
-        self.p2Grid = QtWidgets.QGridLayout()
-
-        self.spacer = QtWidgets.QLabel('')
-        self.p2Grid.addWidget(self.spacer, 0, 0, 1, 2)
-
-        self.btn_saveBuildingParams = QtWidgets.QPushButton('Save building parameters')
-        self.p2Grid.addWidget(self.btn_saveBuildingParams, 0, 3, 1, 1)
-
-        self.vBox_forBPgB.addLayout(self.p2Grid)
 
         # # enrichment
         self.gB_enrich = QtWidgets.QGroupBox('Enrichment Selection')
@@ -536,7 +525,6 @@ class enrichment_main(QtWidgets.QWidget):
 
         self.vbox.addLayout(self.l2Grid)
 
-        self.btn_saveBuildingParams.clicked.connect(self.func_save)
         self.btn_construction.clicked.connect(self.func_construction)
         self.btn_save_enrichment.clicked.connect(self.func_enrich)
         self.btn_zone.clicked.connect(self.func_thermalzones)
@@ -547,19 +535,51 @@ class enrichment_main(QtWidgets.QWidget):
 
         self.cB_curBuilding.currentTextChanged.connect(self.func_curBuildingChanged)
 
+        self.lastBuilding = 'all (selected) buildings'
         self.completedTransform = 0
         self.inpDir = inpDir
         self.buildingParamsDict = buildingParamsDict
         self.buildingOverWrDict = buildingOverWrDict
-        self.overWriteFlag = False
         self.previousDisabled = []
+
+
+    def func_getData(self):
+        """collects all the data from all posible inputs"""
+
+
+
 
     def func_curBuildingChanged(self):
         """gets called when the current building changes"""
-        self.overWriteFlag = False
+        # first save info to the last displayed building (at this point the comboBox already changed the text)
+        cee.onSave(self, self.lastBuilding)
+
+        # get right classes to hide
+        if self.lastBuilding == "all (selected) buildings":
+            thermalClass = self.buildingDict_all["thermalzones"]
+            construClass = self.buildingDict_all["construction"]
+        else:
+            index = cee.getIndexFromBuildingDict(self, self.lastBuilding)
+            thermalClass = self.buildingDict[index]["thermalzones"]
+            construClass = self.buildingDict[index]["construction"]
+
+        # hide windows of last building so the GUI is not everywhere
+        thermalClass.hide()
+        thermalClass.heating.hide()
+        thermalClass.cooling.hide()
+        thermalClass.ventilation.hide()
+        thermalClass.appliances.hide()
+        thermalClass.lighting.hide()
+        thermalClass.occupancy.hide()
+        construClass.hide()
+        
+
+        # then update the index of the last building
+        self.lastBuilding = self.cB_curBuilding.currentText()
+
         if self.cB_curBuilding.currentIndex() != 0:
             try:
-                index = sel.getIndexFromBuildingDict(self, self.cB_curBuilding.currentText())
+                index = cee.getIndexFromBuildingDict(self, self.cB_curBuilding.currentText())
             except:
                 index = -1
         else:
@@ -572,18 +592,16 @@ class enrichment_main(QtWidgets.QWidget):
             sets = {'LoD': 'N/D', 'rType': 'N/D', 'bFunction': 'N/D', 'SAG': 'N/D', 'SBG': 'N/D', 'YOC': 'N/D',
                     'rHeight': 'N/D', 'rHeading': 'N/D', 'bHeight': 'N/D'}
 
-        # values from previous overwrite
-        if index in self.buildingOverWrDict:
-            setX = self.buildingOverWrDict[index]
-            for i in setX:
-                if setX[i] == None:
-                    setX[i] = sets[i]
-            sets = setX
-
         # get values from saving
         if index in self.buildingParamsDict:
             # values from previous safe
             values = self.buildingParamsDict[index]
+            # adding "all (selected) buildings" values to the values that are going to be displayed
+            if index != -1:
+                # this compression gets the checks for parameters that have not been save to a building but are safed for all, so that the value is also displayed
+                from_minus_one = {k: self.buildingParamsDict[-1][k] for k in self.buildingParamsDict[-1] if (values[k] == None and self.buildingParamsDict[-1][k] != None)}
+                for k, v in from_minus_one.items():
+                    values[k] = v
         else:
             # values from "all (selected) buildings"
             values = self.buildingParamsDict[-1]
@@ -674,30 +692,10 @@ class enrichment_main(QtWidgets.QWidget):
             if values["SBG"] != None:
                 self.txtB_SAG.setText(str(values["SBG"]))
 
-    def overwriteChange(self, state):
-        if state:
-            color = "green"
-        else:
-            color = "light gray"
-        txt = "background-color: " + color
-        self.overWriteFlag = state
-        toChange = [self.txtB_buildingHeight, self.txtB_roofHeight, self.txtB_yearOfConstruction, self.txtB_SAG,
-                    self.txtB_SBG]
 
-        if state:
-            self.previousDisabled = []
-            for i in toChange:
-                if not i.isEnabled():
-                    self.previousDisabled.append(i)
-                    i.setEnabled(True)
-        else:
-            for i in self.previousDisabled:
-                i.setEnabled(False)
-
-    def func_overwrite(self):
-        self.overwriteChange(not self.overWriteFlag)
 
     def func_enrich(self):
+        cee.onSave(self, self.lastBuilding)
         print("Starting Enrichment")
         start = time.time()
         cee.EnrichmentStart(self, selAll)
@@ -729,15 +727,35 @@ class enrichment_main(QtWidgets.QWidget):
         posx, posy = gf.dimensions(self)
         gf.next_window(self, about(), False)
 
+
+    def get_right_class(self, type):
+        """return the right dict to get the right thermalzones or construction class"""
+        # get the right class here
+        if self.cB_curBuilding.currentIndex() != 0:
+            try:
+                index = cee.getIndexFromBuildingDict(self, self.cB_curBuilding.currentText())
+            except:
+                index = -1
+                print("error getting index")
+        else:
+            index = -1
+
+        if index == -1:
+            return self.buildingDict_all[type]
+        else:
+            return self.buildingDict[index][type]
+
+
     def func_thermalzones(self):
         global posx, posy
         posx, posy = gf.dimensions(self)
-        gf.next_window(self, thermalzones(), False)
+        gf.next_window(self, self.get_right_class("thermalzones"), False)
+
 
     def func_construction(self):
         global posx, posy
         posx, posy = gf.dimensions(self)
-        gf.next_window(self, construction(), False)
+        gf.next_window(self, self.get_right_class("construction"), False)
 
 
     def func_reset(self):
@@ -757,10 +775,10 @@ class enrichment_main(QtWidgets.QWidget):
         self.txtB_SAG.setText('')
         self.txtB_SBG.setText('')
 
-        self.rB_onlyTransformed.setChecked(True)
+        # commenting out because there is no radioButton in this window
+        # self.rB_onlyTransformed.setChecked(True)
 
         self.completedTransform = 0
-        self.overWriteFlag = False
         self.previousDisabled = []
         self.pB_enrichment.setValue(0)
 
@@ -770,9 +788,6 @@ class enrichment_main(QtWidgets.QWidget):
     def func_exit(self):
         gf.close_application(self)
 
-    def func_save(self):
-        # ldt.onSave(self)
-        self.overwriteChange(False)
 
     def func_back(self):
         global posx, posy, buildingParamsDict, buildingOverWrDict
@@ -818,13 +833,17 @@ class thermalzones(QtWidgets.QWidget):
         self.txt_area.setPlaceholderText("Floor area in m2")
         self.pGrid.addWidget(self.txt_area, 0, 1, 1, 1)
 
-        self.vBox_forthermal.addWidget(self.gB_thermalzone)
         self.gB_thermalzone.setLayout(self.pGrid)
+
         self.rB_Grossfloorarea = QtWidgets.QRadioButton('Gross Floor Area')
         self.pGrid.addWidget(self.rB_Grossfloorarea, 0, 2, 1, 1)
 
         self.rB_netfloorarea = QtWidgets.QRadioButton('Net Floor Area')
         self.pGrid.addWidget(self.rB_netfloorarea, 0, 3, 1, 1)
+
+        self.bG_one = QtWidgets.QButtonGroup()
+        self.bG_one.addButton(self.rB_Grossfloorarea)
+        self.bG_one.addButton(self.rB_netfloorarea)
 
         self.lbl_volume = QtWidgets.QLabel('Volume')
         self.pGrid.addWidget(self.lbl_volume, 1, 0, 1, 1)
@@ -838,6 +857,11 @@ class thermalzones(QtWidgets.QWidget):
 
         self.rB_netvolume = QtWidgets.QRadioButton('Net Volume')
         self.pGrid.addWidget(self.rB_netvolume, 1, 3, 1, 1)
+
+        self.bG_two = QtWidgets.QButtonGroup()
+        self.bG_two.addButton(self.rB_Grossvolume)
+        self.bG_two.addButton(self.rB_netvolume)
+
 
         self.lbl_heated = QtWidgets.QLabel('Is heated:')
         self.pGrid.addWidget(self.lbl_heated, 2, 0, 1, 1)
@@ -885,17 +909,12 @@ class thermalzones(QtWidgets.QWidget):
 
         self.l2Grid = QtWidgets.QGridLayout()
 
-        self.btn_about = QtWidgets.QPushButton('About')
-        self.l2Grid.addWidget(self.btn_about, 0, 0, 1, 1)
 
         self.btn_reset = QtWidgets.QPushButton('Reset')
-        self.l2Grid.addWidget(self.btn_reset, 0, 1, 1, 1)
+        self.l2Grid.addWidget(self.btn_reset, 0, 0, 1, 1)
 
-        self.btn_exit = QtWidgets.QPushButton('Exit')
-        self.l2Grid.addWidget(self.btn_exit, 0, 2, 1, 1)
-
-        self.btn_back = QtWidgets.QPushButton('Back')
-        self.l2Grid.addWidget(self.btn_back, 0, 3, 1, 1)
+        self.btn_close = QtWidgets.QPushButton('Close')
+        self.l2Grid.addWidget(self.btn_close, 0, 1, 1, 1)
 
         self.vbox.addLayout(self.l2Grid)
 
@@ -905,10 +924,8 @@ class thermalzones(QtWidgets.QWidget):
         self.btn_occupancy.clicked.connect(self.func_occupancy_schedules)
         self.btn_appliances.clicked.connect(self.func_appliances_schedules)
         self.btn_lighting.clicked.connect(self.func_lighting_schedules)
-        self.btn_about.clicked.connect(self.func_about)
         # self.btn_reset.clicked.connect(self.func_reset)
-        self.btn_exit.clicked.connect(self.func_exit)
-        # self.btn_back.clicked.connect(self.func_back)
+        self.btn_close.clicked.connect(self.func_close)
 
         # create classes
         self.heating = base_schedules("Heating Schedules")
@@ -921,11 +938,6 @@ class thermalzones(QtWidgets.QWidget):
         self.occupancy = occupancy_schedules("Occupancy Schedules")
         
 
-
-    def func_about(self):
-        global posx, posy
-        posx, posy = gf.dimensions(self)
-        gf.next_window(self, about(), False)
 
     def func_heating_schedules(self):
         global posx, posy
@@ -957,8 +969,9 @@ class thermalzones(QtWidgets.QWidget):
         posx, posy = gf.dimensions(self)
         gf.next_window(self, self.lighting, False)
 
-    def func_exit(self):
-        gf.close_application(self)
+    def func_close(self):
+        """hides this window"""
+        self.hide()
 
 
 
@@ -971,13 +984,13 @@ class construction(QtWidgets.QWidget):
     def initUI(self):
         global posx, posy, width, height, sizefactor
 
-        gf.windowSetup(self, posx + 10, posy + 10, width+100, height+100, pypath, 'CityEnrich - Thermal Zones')
+        gf.windowSetup(self, posx + 10, posy + 10, width+100, height+100, pypath, 'CityEnrich - Construction Enrichment')
 
         # loading materials from file
         self.materials = pd.read_json("files from teaser+\MaterialTemplates.json")
-        self.materialNames = []
+        self.materialDict = {}
         for i in self.materials.columns:
-            self.materialNames.append(self.materials[i]["name"])
+            self.materialDict[self.materials[i]["name"]] = i
 
         self.num_layers_wall = 0
         self.layers_wall = {}
@@ -992,24 +1005,9 @@ class construction(QtWidgets.QWidget):
         self.vbox = QtWidgets.QVBoxLayout(self)
         self.setLayout(self.vbox)
 
-        # gf.load_banner(self, os.path.join(pypath, r'pictures\e3dHeader.png'), sizefactor)
-
-        # # grid layout for file selection
-        # self.uGrid = QtWidgets.QGridLayout()
-
-        # self.vbox.addLayout(self.uGrid)
-        self.gB_construction = QtWidgets.QGroupBox('Construction Enrichment')
-        self.vbox.addWidget(self.gB_construction)
-        self.vBox_forconstruction = QtWidgets.QVBoxLayout()
-        self.gB_construction.setLayout(self.vBox_forconstruction)
-        # ToDo: from here much of the buttons are currently as placeholders in this class
-        # # walls enrichment
-
-        # self.btn_enrichment_walls = QtWidgets.QPushButton('Walls')
-        # self.vBox_forconstruction.addWidget(self)
 
         self.scrollArea = QtWidgets.QScrollArea(self)
-        self.vBox_forconstruction.addWidget(self.scrollArea)
+        self.vbox.addWidget(self.scrollArea)
         self.scrollArea.setWidgetResizable(True)
         self.scrollContent = QtWidgets.QWidget(self.scrollArea)
         self.scrollLayout = QtWidgets.QVBoxLayout(self.scrollContent)
@@ -1031,23 +1029,6 @@ class construction(QtWidgets.QWidget):
         self.vbox_wallLayers = QtWidgets.QVBoxLayout()
         self.wallGrid.addLayout(self.vbox_wallLayers, 1, 0, 1, 4)
 
-        # self.gB_layers_walls = QtWidgets.QGroupBox('Layer 1')
-        # self.wallGrid.addWidget(self.gB_layers_walls, 1, 0, 1, 4)
-        # #
-        # self.aGrid_walls = QtWidgets.QGridLayout()
-        # self.gB_layers_walls.setLayout(self.aGrid_walls)
-
-        # self.lbl_material_layers_walls = QtWidgets.QLabel('Selected Material:')
-        # self.aGrid_walls.addWidget(self.lbl_material_layers_walls, 0, 0, 1, 1)
-
-        # self.txt_material_layers_walls = QtWidgets.QLineEdit('')
-        # self.aGrid_walls.addWidget(self.txt_material_layers_walls, 0, 1, 1, 1)
-
-        # self.lbl_thickness_layers_walls = QtWidgets.QLabel('Thickness:')
-        # self.aGrid_walls.addWidget(self.lbl_thickness_layers_walls, 0, 2, 1, 1)
-
-        # self.txt_thickness_layers_walls = QtWidgets.QLineEdit('')
-        # self.aGrid_walls.addWidget(self.txt_thickness_layers_walls, 0, 3, 1, 1)
 
         self.btn_wall_removeLayer = QtWidgets.QPushButton("remove layer")
         self.wallGrid.addWidget(self.btn_wall_removeLayer, 2, 2, 1, 1)
@@ -1148,31 +1129,22 @@ class construction(QtWidgets.QWidget):
         self.txt_glazingratio_windows = QtWidgets.QLineEdit('')
         self.windowsGrid.addWidget(self.txt_glazingratio_windows, 1, 3, 1, 1)
 
-        
-
-        
-
 
         self.l2Grid = QtWidgets.QGridLayout()
 
-        self.btn_about = QtWidgets.QPushButton('About')
-        self.l2Grid.addWidget(self.btn_about, 0, 0, 1, 1)
 
         self.btn_reset = QtWidgets.QPushButton('Reset')
-        self.l2Grid.addWidget(self.btn_reset, 0, 1, 1, 1)
+        self.l2Grid.addWidget(self.btn_reset, 0, 0, 1, 1)
 
-        self.btn_exit = QtWidgets.QPushButton('Exit')
-        self.l2Grid.addWidget(self.btn_exit, 0, 2, 1, 1)
 
-        self.btn_back = QtWidgets.QPushButton('Back')
-        self.l2Grid.addWidget(self.btn_back, 0, 3, 1, 1)
+        self.btn_close = QtWidgets.QPushButton('Close')
+        self.l2Grid.addWidget(self.btn_close, 0, 1, 1, 1)
 
         self.vbox.addLayout(self.l2Grid)
 
-        self.btn_about.clicked.connect(self.func_about)
-        # self.btn_reset.clicked.connect(self.func_reset)
-        self.btn_exit.clicked.connect(self.func_exit)
-        # self.btn_back.clicked.connect(self.func_back)
+
+        self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_close.clicked.connect(self.func_close)
 
         self.btn_wall_addLayer.clicked.connect(functools.partial(self.func_addLayer, "wall"))
         self.btn_wall_removeLayer.clicked.connect(functools.partial(self.func_removeLayer, "wall"))
@@ -1188,14 +1160,74 @@ class construction(QtWidgets.QWidget):
         self.func_addLayer("roof")
         self.func_addLayer("ground")
 
-    def func_about(self):
-        global posx, posy
-        posx, posy = gf.dimensions(self)
-        gf.next_window(self, about(), False)
 
-    def func_exit(self):
-        gf.close_application(self)
 
+    def func_close(self):
+        """hides this window"""
+        self.hide()
+
+
+
+    def func_reset(self):
+        """resets window to default"""
+        while self.num_layers_wall > 0:
+            self.func_removeLayer("wall")
+        self.func_addLayer("wall")
+
+        while self.num_layers_roof > 0:
+            self.func_removeLayer("roof")
+        self.func_addLayer("roof")
+
+        while self.num_layers_ground > 0:
+            self.func_removeLayer("ground")
+        self.func_addLayer("ground")
+
+        for txtBox in [self.txt_window2wallRatio, self.txt_transmittance_fraction_windows, self.txt_uvalue_windows, self.txt_glazingratio_windows]:
+            txtBox.setText('')
+            
+
+
+
+    def calculate_U_value(self, target, _x) -> None:
+        """calculates the u value of a wall roof or ground slab"""
+
+        if target == "wall":
+            r_si = 0.13
+            r_se = 0.04
+            layers = self.layers_wall
+            txtBox = self.txt_uvalue_walls
+        elif target == "roof":
+            r_si = 0.10
+            r_se = 0.04
+            layers = self.layers_roof
+            txtBox = self.txt_uvalue_roof
+        elif target == "ground":
+            r_si = 0.17
+            r_se = 0.04
+            layers = self.layers_ground
+            txtBox = self.txt_uvalue_ground
+        
+        sum = 0 # sum of heat transfer resistances of all layers
+        for _key, layer in layers.items():
+            material = layer["cB_material"].currentText()
+            if material == '':
+                continue
+            id = self.materialDict[material]
+            thermal_conduc =  self.materials[id]["thermal_conduc"]
+            thickness = layer["sB_thickness"].value()
+            sum += thickness / thermal_conduc
+        
+        if sum == 0:
+            u = ''
+        else:
+            u = str(1 / (r_si + sum + r_se))
+
+        txtBox.setText(u)
+        if u != '':
+            txtBox.setEnabled(False)
+        else:
+            txtBox.setEnabled(True)
+    
 
 
     def func_addLayer(self, target):
@@ -1222,16 +1254,20 @@ class construction(QtWidgets.QWidget):
         layer["layout"].addWidget(layer["lbl_material"], 0, 0, 1, 1)
 
         layer["cB_material"] = QtWidgets.QComboBox()
-        layer["cB_material"].addItems(self.materialNames)
+        layer["cB_material"].addItems(self.materialDict.keys())
+        layer["cB_material"].currentTextChanged.connect(functools.partial(self.calculate_U_value, target))
         layer["layout"].addWidget(layer["cB_material"], 0, 1, 1, 1)
+
 
         layer["lbl_thickness"] = QtWidgets.QLabel('Thickness [m]:')
         layer["layout"].addWidget(layer["lbl_thickness"], 0, 2, 1, 1)
 
         layer["sB_thickness"] = QtWidgets.QDoubleSpinBox()
-        layer["sB_thickness"].setRange(0, 0.5)
+        layer["sB_thickness"].setDecimals(3)
+        layer["sB_thickness"].setRange(0.001, 2)
         layer["sB_thickness"].setSingleStep(0.001)
         layer["sB_thickness"].setValue(0.01)
+        layer["sB_thickness"].valueChanged.connect(functools.partial(self.calculate_U_value, target))
         layer["layout"].addWidget(layer["sB_thickness"], 0, 3, 1, 1)
 
 
@@ -1248,7 +1284,7 @@ class construction(QtWidgets.QWidget):
 
 
     def func_removeLayer(self, target):
-        print("want to remove wall layer")
+        """removes last layer from target and recalculates the u value"""
 
         if target == "wall":
             layer_dict = self.layers_wall
@@ -1260,9 +1296,9 @@ class construction(QtWidgets.QWidget):
             layer_dict = self.layers_ground
             num_of_layers = self.num_layers_ground
 
-
         if num_of_layers == 0:
             return
+
         for i in ["sB_thickness", "lbl_thickness", "cB_material", "lbl_material", "gB"]:
             layer_dict[str(num_of_layers-1)][i].setParent(None)
 
@@ -1275,6 +1311,7 @@ class construction(QtWidgets.QWidget):
         elif target == "ground":
             del self.layers_ground[str(num_of_layers-1)]
             self.num_layers_ground -= 1
+        self.calculate_U_value(target, None)
         
 
 
@@ -1306,42 +1343,50 @@ class base_schedules(QtWidgets.QWidget):
         self.lbl_date_begin = QtWidgets.QLabel('Start Date:')
         self.mGrid.addWidget(self.lbl_date_begin, 0, 0, 1, 1)
 
-        self.txt_date_begin = QtWidgets.QLineEdit('') #ToDo: Add calander selection (Simon)
-        self.txt_date_begin.setPlaceholderText("e.g.: 2022-01-01")
-        self.mGrid.addWidget(self.txt_date_begin, 0, 1, 1, 1)
+        self.dE_date_start = QtWidgets.QDateEdit()
+        self.dE_date_start.setCalendarPopup(True)
+        self.dE_date_start.setDisplayFormat("yyyy-MM-dd")
+        self.dE_date_start.setDate(QtCore.QDate.fromString("2022-01-01", "yyyy-MM-dd"))
+        self.mGrid.addWidget(self.dE_date_start, 0, 1, 1, 1)
 
         self.lbl_date_end = QtWidgets.QLabel('End Date:')
         self.mGrid.addWidget(self.lbl_date_end, 0, 2, 1, 1)
 
-        self.txt_date_end = QtWidgets.QLineEdit('')  # ToDo: Add calander selection (Simon)
-        self.txt_date_end.setPlaceholderText("e.g.: 2022-12-31")
-        self.mGrid.addWidget(self.txt_date_end, 0, 3, 1, 1)
+        self.dE_date_end = QtWidgets.QDateEdit()
+        self.dE_date_end.setCalendarPopup(True)
+        self.dE_date_end.setDisplayFormat("yyyy-MM-dd")
+        self.dE_date_end.setDate(QtCore.QDate.fromString("2022-12-31", "yyyy-MM-dd"))
+        self.mGrid.addWidget(self.dE_date_end, 0, 3, 1, 1)
 
         self.lbl_hour_begin = QtWidgets.QLabel('Begin Hour:')
         self.mGrid.addWidget(self.lbl_hour_begin, 1, 0, 1, 1)
 
-        self.txt_hour_begin = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
-        self.txt_hour_begin.setPlaceholderText("e.g.: 00:00:00")
-        self.mGrid.addWidget(self.txt_hour_begin, 1, 1, 1, 1)
+        self.tE_time_start = QtWidgets.QTimeEdit()
+        self.tE_time_start.setDisplayFormat("hh:mm:ss")
+        self.tE_time_start.setTime(QtCore.QTime.fromString("00:00:00", "hh:mm:ss"))
+        self.mGrid.addWidget(self.tE_time_start, 1, 1, 1, 1)
 
         self.lbl_hour_end = QtWidgets.QLabel('End Hour:')
         self.mGrid.addWidget(self.lbl_hour_end, 1, 2, 1, 1)
 
-        self.txt_hour_end = QtWidgets.QLineEdit('')  # ToDo: Add time selection (Simon)
-        self.txt_hour_end.setPlaceholderText("e.g.: 23:59:59")
-        self.mGrid.addWidget(self.txt_hour_end, 1, 3, 1, 1)
+        self.tE_time_end = QtWidgets.QTimeEdit()
+        self.tE_time_end.setDisplayFormat("hh:mm:ss")
+        self.tE_time_end.setTime(QtCore.QTime.fromString("23:59:59", "hh:mm:ss"))
+        self.mGrid.addWidget(self.tE_time_end, 1, 3, 1, 1)
 
         self.lbl_interpolation_type = QtWidgets.QLabel('Interpolation Type')  # ToDo: (Max) do we make the unit separate?
         self.mGrid.addWidget(self.lbl_interpolation_type, 2, 0, 1, 1)
 
-        self.txt_interpolation = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
-        self.mGrid.addWidget(self.txt_interpolation, 2, 1, 1, 1)
+        self.cB_interpolation = QtWidgets.QComboBox()  # ToDo: (Max) May be a dropdown?; (Simon) Add selection
+        self.cB_interpolation.addItems(["", "averageInPrecedingInterval", "averageInSucceedingInterval", "constantInPrecedingInterval", "constantInSucceedingInterval", "continuous", "discontinuous", "instantaneousTotal", "maximumInPrecedingInterval", "maximumInSucceedingInterval", "minimumInPrecedingInterval", "minimumInSucceedingInterval", "precedingTotal", "succeedingTotal"])
+        self.mGrid.addWidget(self.cB_interpolation, 2, 1, 1, 1)
 
         self.lbl_acquisition_method = QtWidgets.QLabel('Acquisition Method:')
         self.mGrid.addWidget(self.lbl_acquisition_method, 2, 2, 1, 1)
 
-        self.txt_acquisition_method = QtWidgets.QLineEdit('')  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
-        self.mGrid.addWidget(self.txt_acquisition_method, 2, 3, 1, 1)
+        self.cB_acquisition_method = QtWidgets.QComboBox()  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
+        self.cB_acquisition_method.addItems(["", "measurement", "simulation", "calibratedSimulation", "estimation"," unknown"])
+        self.mGrid.addWidget(self.cB_acquisition_method, 2, 3, 1, 1)
 
         self.lbl_thematic_description = QtWidgets.QLabel('Thematic Description:')
         self.mGrid.addWidget(self.lbl_thematic_description, 3, 0, 1, 1)
@@ -1353,12 +1398,14 @@ class base_schedules(QtWidgets.QWidget):
         self.mGrid.addWidget(self.btn_wkday, 4, 0, 1, 1)
 
         self.txt_wkday = QtWidgets.QLineEdit("")
+        self.txt_wkday.setEnabled(False)
         self.mGrid.addWidget(self.txt_wkday, 4, 1, 1, 3)
 
         self.btn_wkend = QtWidgets.QPushButton("Select file for weekends")
         self.mGrid.addWidget(self.btn_wkend, 5, 0, 1, 1)
 
         self.txt_wkend = QtWidgets.QLineEdit("")
+        self.txt_wkend.setEnabled(False)
         self.mGrid.addWidget(self.txt_wkend, 5, 1, 1, 3)
         
         self.lbl_unit = QtWidgets.QLabel('Unit:')
@@ -1376,22 +1423,38 @@ class base_schedules(QtWidgets.QWidget):
 
         self.lGrid = QtWidgets.QGridLayout()
 
-        self.btn_save = QtWidgets.QPushButton('Save') #ToDo: (Simon) Add functionalities to save
-        self.lGrid.addWidget(self.btn_save, 0, 0, 1, 1)
 
         self.btn_reset = QtWidgets.QPushButton('Reset') #ToDo: (Simon) Add functionalities to reset
-        self.lGrid.addWidget(self.btn_reset, 0, 1, 1, 1)
+        self.lGrid.addWidget(self.btn_reset, 0, 0, 1, 1)
 
-        self.btn_exit = QtWidgets.QPushButton('Exit')
-        self.lGrid.addWidget(self.btn_exit, 0, 2, 1, 1)
-
-        self.btn_back = QtWidgets.QPushButton('Back') #ToDo: (Simon) Add functionalities to back
-        self.lGrid.addWidget(self.btn_back, 0, 3, 1, 1)
+        self.btn_close = QtWidgets.QPushButton('Close') #ToDo: (Simon) Add functionalities to back
+        self.lGrid.addWidget(self.btn_close, 0, 1, 1, 1)
 
         self.vbox.addLayout(self.lGrid)
 
-        # To-Do add functionality to buttons
+        self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_close.clicked.connect(self.func_close)
 
+        self.btn_wkday.clicked.connect(functools.partial(self.func_read_schedule, self.txt_wkday))
+        self.btn_wkend.clicked.connect(functools.partial(self.func_read_schedule, self.txt_wkend))
+    
+    def func_read_schedule(self, txtB):
+        """reads a file using QFileDialog"""
+        path = QtWidgets.QFileDialog.getOpenFileName(self, 'Select .gml or .xml file')[0]
+        if path != '' and os.path.isfile(path):
+            with open(path, "r") as f:
+                content = f.read()
+            txtB.setText(content)
+
+
+
+    def func_reset(self):
+        """resets all inputs in window"""
+        reset_inputs(self)
+
+    def func_close(self):
+        """hides this window"""
+        self.hide()
 
 
 class crv_schedules(base_schedules):
@@ -1484,6 +1547,20 @@ class about(QtWidgets.QWidget):
 
     def close_about(self):
         self.hide()
+
+
+
+def reset_inputs(self):
+    """aims to reset all widgets of type: QLineEdit, QComboBox, QRadioButton (also in child elements; sorry for recursion)"""
+    for i in self.children():
+        if isinstance(i, QtWidgets.QVBoxLayout) or isinstance(i, QtWidgets.QGridLayout) or isinstance(i, QtWidgets.QGroupBox):
+            reset_inputs(i)
+        elif isinstance(i, QtWidgets.QLineEdit):
+            i.setText("")
+        elif isinstance(i, QtWidgets.QComboBox):
+            i.setCurrentIndex(0)
+        elif isinstance(i, QtWidgets.QRadioButton):
+            i.setChecked(False)
 
 
 if __name__ == "__main__":

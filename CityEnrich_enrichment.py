@@ -35,13 +35,14 @@ def checkIfStringIsNumber(self, string, t=float):
         return False
 
 
-def onSave(self):
-    """to save user entered building parameters"""
-    # get index of comboBox
-    if self.cB_curBuilding.currentIndex() != 0:
-        index = getIndexFromBuildingDict(self, self.cB_curBuilding.currentText())
-    else:
+def onSave(self, building):
+    """to self user entered building parameters"""
+    # get index for the right building
+    if building == 'all (selected) buildings':
         index = -1
+    else:
+        index = getIndexFromBuildingDict(self, building)
+
     # gather all data
     params = {}
 
@@ -113,10 +114,14 @@ def onSave(self):
     else:
         params["SBG"] = None
 
-    if self.overWriteFlag == True:
-        self.buildingOverWrDict[index] = params
-    else:
-        self.buildingParamsDict[index] = params
+    # remvoing duplicates to avoid errors
+    if index != -1:
+        shared_items = {k: params[k] for k in params if k in self.buildingParamsDict[-1] and params[k] == self.buildingParamsDict[-1][k]}
+        for key in shared_items:
+            params[key] = None
+
+    self.buildingParamsDict[index] = params
+
 
 
 def select_expPath(self):
@@ -341,12 +346,146 @@ def EnrichmentStart(self, selAll):
                     else:
                         # from all buildings default
                         row[-1] = self.buildingParamsDict[-1][i]
+        
+
+
+        # getting different from LDT
+        thermalZone = self.buildingDict[index]["thermalzones"]
+        
+        # getting floor area
+        row.append(thermalZone.txt_area.text())
+
+        if thermalZone.rB_Grossfloorarea.isChecked():
+            area_type = "gross"
+        elif thermalZone.rB_netfloorarea.isChecked():
+            area_type = "net"
+        else:
+            area_type = None
+        row.append(area_type)
+
+        # getting volume
+        row.append(thermalZone.txt_volume.text())
+
+        if thermalZone.rB_Grossvolume.isChecked():
+            volume_type = "gross"
+        elif thermalZone.rB_netvolume.isChecked():
+            volume_type = "net"
+        else:
+            volume_type = None
+        row.append(volume_type)
+
+        # heating and cooling
+        if thermalZone.cB_heated.currentText() == "Yes":
+            heated = True
+        elif thermalZone.cB_heated.currentText() == "No":
+            heated = False
+        else:
+            heated = None
+        row.append(heated)
+
+        # heating and cooling
+        if thermalZone.cB_cooled.currentText() == "Yes":
+            cooled = True
+        elif thermalZone.cB_cooled.currentText() == "No":
+            cooled = False
+        else:
+            cooled = None
+        row.append(cooled)
+
+        for key, target in {"heat": thermalZone.heating, "cool": thermalZone.cooling, "vent": thermalZone.ventilation, "appl": thermalZone.appliances, "ligh": thermalZone.lighting, "occu": thermalZone.occupancy}.items():
+
+            # get date stamps
+            row.append(target.dE_date_start.dateTime().toString("yyyy-MM-dd"))
+            row.append(target.dE_date_end.dateTime().toString("yyyy-MM-dd"))
+
+            # get time stamps
+            row.append(target.tE_time_start.dateTime().toString("hh:mm:ss"))
+            row.append(target.tE_time_end.dateTime().toString("hh:mm:ss"))
+
+            # get interpolation type
+            row.append(target.cB_interpolation.currentText())
+
+            # get acquisition method
+            row.append(target.cB_acquisition_method.currentText())
+
+            # description
+            row.append(target.txt_thematic_description.text())
+
+            # get files To-Do
+            """To-Do read the files"""
+            row.append(target.txt_wkday.text())
+            row.append(target.txt_wkend.text())
+
+            # get unit
+            row.append(target.txt_unit.text())
+            
+            # SI or fraction
+            if target.radio_SIunit.isChecked():
+                unit_type = "SI"
+            elif target.radio_fraction_unit.isChecked():
+                unit_type = "fraction"
+            else:
+                unit_type = None
+            row.append(unit_type)
+
+            if key in ["appl", "ligh", "occu"]:
+                # convective fraction
+                row.append(target.txt_convectiveFraction.text())
+                
+                # radiant fraction
+                row.append(target.txt_radiantFraction.text())
+                
+                # total value
+                row.append(target.txt_totalValue.text())
+            
+                if key == "occu":
+                    row.append(target.txt_numberOccupant.text())
+
+
+        # construction stuff here
+        construct = self.buildingDict[index]["construction"]
+        # get walls, roof, and ground here
+        for u_txtB, side in [[construct.txt_uvalue_walls, construct.layers_wall], [construct.txt_uvalue_roof, construct.layers_roof], [construct.txt_uvalue_ground, construct.layers_ground]]:
+            comp = []
+            for layer in side.values():
+                comp.append([layer["cB_material"].currentText(), layer["sB_thickness"].value()])
+            row.append(comp)
+            row.append(u_txtB.text())
+
+        # window values
+        row.append(construct.txt_window2wallRatio.text())
+        row.append(construct.txt_transmittance_fraction_windows.text())
+        row.append(construct.txt_uvalue_windows.text())
+        row.append(construct.txt_glazingratio_windows.text())
+
+        
+
+        
+        # to append:
+        # area, area_type, volume, volume_type, heated, cooled,
+        # date_start, date_end, time_start, time_end, interpol_method, acqui_method, description, sched_wkday, sched_wkend, unit, sunit_type
+        # conv_frac, radi_frac, total_value
+        # num_occupants
+
 
         dataForFrame.append(row)
 
     df = pd.DataFrame(dataForFrame,
                       columns=['filename', 'buildingID', 'bpID', 'selected', 'LoD', 'buildingHeight', 'roofHeight',
-                               'roofType', 'roofHeading', 'function', 'YOC', 'SAG', 'SBG'])
+                               'roofType', 'roofHeading', 'function', 'YOC', 'SAG', 'SBG',
+                               'area', 'area_type', 'volume', 'volume_type', 'heated', 'cooled',
+                               'heat_date_start', 'heat_date_end', 'heat_time_start', 'heat_time_end', 'heat_interpol_method', 'heat_acqui_method', 'heat_description', 'heat_sched_wkday', 'heat_sched_wkend', 'heat_unit', 'heat_unit_type',
+                               'cool_date_start', 'cool_date_end', 'cool_time_start', 'cool_time_end', 'cool_interpol_method', 'cool_acqui_method', 'cool_description', 'cool_sched_wkday', 'cool_sched_wkend', 'cool_unit', 'cool_unit_type',
+                               'vent_date_start', 'vent_date_end', 'vent_time_start', 'vent_time_end', 'vent_interpol_method', 'vent_acqui_method', 'vent_description', 'vent_sched_wkday', 'vent_sched_wkend', 'vent_unit', 'vent_unit_type',
+                               'appl_date_start', 'appl_date_end', 'appl_time_start', 'appl_time_end', 'appl_interpol_method', 'appl_acqui_method', 'appl_description', 'appl_sched_wkday', 'appl_sched_wkend', 'appl_unit', 'appl_unit_type', 'appl_conv_frac', 'appl_radi_frac', 'appl_total_val',
+                               'ligh_date_start', 'ligh_date_end', 'ligh_time_start', 'ligh_time_end', 'ligh_interpol_method', 'ligh_acqui_method', 'ligh_description', 'ligh_sched_wkday', 'ligh_sched_wkend', 'ligh_unit', 'ligh_unit_type', 'ligh_conv_frac', 'ligh_radi_frac', 'ligh_total_val',
+                               'occu_date_start', 'occu_date_end', 'occu_time_start', 'occu_time_end', 'occu_interpol_method', 'occu_acqui_method', 'occu_description', 'occu_sched_wkday', 'occu_sched_wkend', 'occu_unit', 'occu_unit_type', 'occu_conv_frac', 'occu_radi_frac', 'occu_total_val', 'occu_num_occu',
+                               'wall_layers', 'wall_u', 'roof_layers', 'roof_u', 'grnd_layers', 'grnd_u',
+                               'win2wall', 'winTrans','winU', 'winGlazing'
+                               ])
+    print(df)
+    
+
     # only consider buildings which are not in the target LoD
     # df = df.loc[df['LoD'] != targetLoD]
     # print('df after LoD clearing')
