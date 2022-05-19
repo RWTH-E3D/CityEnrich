@@ -537,8 +537,16 @@ def EnrichmentStart(self, selAll):
         
         # checks if None entries can be replaced with values from the defaults list
         for i, entry in enumerate(non_LDT_data):
-            if (entry == None or pd.isna(entry)) and not (non_LDT_defaults[i] == None or pd.isna(non_LDT_defaults[i])):
+            #checking for walls if list is given
+            if isinstance(entry, list):
+                # wall/layers are defined on a individual level -> no need to change anything
+                continue
+            elif isinstance(non_LDT_defaults[i], list):
+                # wall/layers are defined on an all level -> need to save 
                 non_LDT_data[i] = non_LDT_defaults[i]
+            else:
+                if (entry == None or pd.isna(entry)) and not (non_LDT_defaults[i] == None or pd.isna(non_LDT_defaults[i])):
+                    non_LDT_data[i] = non_LDT_defaults[i]
                 
         row.extend(non_LDT_data)
         
