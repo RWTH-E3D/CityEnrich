@@ -433,8 +433,7 @@ def enrichFile(self, filename, dfFile):
             if len(dfMain.index > 1):
                 setBuildingElements(building_E, nnss, dfMain)
                 _set_gml_thermal_zone_lxml(building_E, nnss, thermal_zone)
-                Surfaces_lists = get_gml_surfaces(building_E, nnss)
-                print(Surfaces_lists)
+
             # if self.rB_individualFiles.isChecked():
             #     # first save tree to file
             #     baseName = os.path.splitext(filename)[0]
@@ -491,47 +490,47 @@ def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
     gml_volume_geometry = ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'volumeGeometry'))
     # solid = ET.SubElement(gml_volume_geometry, ET.QName(nsClass['gml'], 'Solid'),
     #                                  attrib={ET.QName(nsClass['gml'], 'id'): str(thermal_zone_id + "_solid")})
-
-    # polyIDs, exteriorSurfaces = _set_composite_surface(gml_volume_geometry, nsClass, thermal_zone, ET)
+    Surfaces_lists = get_gml_surfaces(building_E, nsClass)
+    polyIDs, exteriorSurfaces = _set_composite_surface(gml_volume_geometry, nsClass, Surfaces_lists)
 
     """Set Usage zone for thermal zone"""
     _set_usage_zone_lxml(thermal_zone, building_E, usage_zone_id, nsClass)
 
     """Set boundary Surfaces"""
 
-    # construction_id_windows = None
-    # material_ids = []
-    #
-    # for i in range(len(exteriorSurfaces)):
-    #     if i == 0:
-    #         surfaceType = 'WallSurface'
-    #         construction_id = None
-    #
-    #     elif i == 1:
-    #         surfaceType = 'RoofSurface'
-    #         construction_id = None
-    #
-    #     elif i == 2:
-    #         surfaceType = 'GroundSurface'
-    #         construction_id = None
-    #
-    #
-    #     for surface in exteriorSurfaces[i]:
-    #         thermal_openings = []
-    #
-    #         for win_count in thermal_zone.windows:
-    #             if surface.orientation == win_count.orientation and surface.tilt == win_count.tilt:
-    #                 thermal_openings.append(win_count)
-    #         construction_id, construction_id_windows = \
-    #             _set_gml_thermal_boundary_lxml(gml_Thermal_Zone, surface, thermal_openings, nsClass, construction_id,
-    #                                            construction_id_windows, material_ids, thermal_zone_id)
+    construction_id_windows = None
+    material_ids = []
 
-    # return polyIDs
+    for i in range(len(exteriorSurfaces)):
+        if i == 0:
+            surfaceType = 'WallSurface'
+            construction_id = None
+
+        elif i == 1:
+            surfaceType = 'RoofSurface'
+            construction_id = None
+
+        elif i == 2:
+            surfaceType = 'GroundSurface'
+            construction_id = None
 
 
-def _set_composite_surface(solid, nsClass, thermal_zone, ET):
+        for surface in exteriorSurfaces[i]:
+            thermal_openings = []
 
-    exteriorSurfaces = [thermal_zone.outer_walls, thermal_zone.rooftops, thermal_zone.ground_floors]
+            # for win_count in thermal_zone.windows:
+            #     if surface.orientation == win_count.orientation and surface.tilt == win_count.tilt:
+            #         thermal_openings.append(win_count)
+            construction_id, construction_id_windows = \
+                _set_gml_thermal_boundary_lxml(gml_Thermal_Zone, surface, thermal_openings, nsClass, construction_id,
+                                               construction_id_windows, material_ids, thermal_zone_id)
+
+    return polyIDs
+
+
+def _set_composite_surface(solid, nsClass, Surfaces_lists):
+
+    exteriorSurfaces = Surfaces_lists
     polyIDs = []
     n = 0
     UUID = uuid.uuid1()
@@ -540,8 +539,8 @@ def _set_composite_surface(solid, nsClass, thermal_zone, ET):
             ID = "PolyID" + str(UUID) + '_' + str(n)
             polyIDs.append(ID)
             hashtagedID = '#' + ID
-            # ET.SubElement(solid, ET.QName(nsClass['gml'], 'surfaceMember'),
-            #               attrib={ET.QName(nsClass.xlink, 'href'): hashtagedID})
+            ET.SubElement(solid, ET.QName(nsClass['gml'], 'surfaceMember'),
+                          attrib={ET.QName(nsClass['xlink'], 'href'): hashtagedID})
             n -= - 1
     return polyIDs, exteriorSurfaces
 
@@ -576,26 +575,26 @@ def _set_gml_thermal_boundary_lxml(gml_zone, wall, thermal_openings, nsClass, co
 
     """
     _current_tb = None
-    if type(wall).__name__ == "OuterWall":
-
+    if "Wall" in wall.name:
+        print("string test works")
         thermal_boundary_type_value = "outerWall"
 
 
-    elif type(wall).__name__ == "Rooftop":
+    elif "Roof" in wall.name:
         thermal_boundary_type_value = "roof"
 
 
-    elif type(wall).__name__ == "GroundFloor":
+    elif  "Ground" in wall.name:
 
         thermal_boundary_type_value = "groundSlab"
 
-    elif type(wall).__name__ == "InnerWall":
-        thermal_boundary_type_value = "intermediaryFloor"
+    # elif type(wall).__name__ == "InnerWall":
+    #     thermal_boundary_type_value = "intermediaryFloor"
 
 
-    elif type(wall).__name__ == "Ceiling" or type(wall).__name__ == "Floor":
-
-        thermal_boundary_type_value = "interiorWall"
+    # elif type(wall).__name__ == "Ceiling" or type(wall).__name__ == "Floor":
+    #
+    #     thermal_boundary_type_value = "interiorWall"
 
     else:
         print("Strange Wall Surface detected!")
@@ -606,17 +605,17 @@ def _set_gml_thermal_boundary_lxml(gml_zone, wall, thermal_openings, nsClass, co
     ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "thermalBoundaryType")).text = \
         thermal_boundary_type_value
     ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "azimuth"), attrib={'uom': "deg"}).text = \
-        str(wall.orientation)
+        str(wall.surface_orientation)
     ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "inclination"), attrib={'uom': "deg"}).text = \
-        str(wall.tilt)
+        str(wall.surface_tilt)
     ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "area"), attrib={'uom': "m2"}).text = \
-        str(wall.area)
-    if construction_id is None:
-        construction_id = _set_gml_construction_lxml(wall, material_ids)
-    else:
-        pass
-    ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "construction"), attrib={ET.QName(nsClass.xlink, 'href'):
-                                                                                        str("#" + str(construction_id))})
+        str(wall.surface_area)
+    # if construction_id is None:
+    #     construction_id = _set_gml_construction_lxml(wall, material_ids)
+    # else:
+    #     pass
+    # ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "construction"), attrib={ET.QName(nsClass.xlink, 'href'):
+    #                                                                                     str("#" + str(construction_id))})
 
     if thermal_openings is not None:
         for thermal_opening in thermal_openings:
@@ -633,7 +632,7 @@ def _set_gml_thermal_boundary_lxml(gml_zone, wall, thermal_openings, nsClass, co
                           attrib={ET.QName(nsClass.xlink, 'href'): str("#" + construction_id_windows)})
 
     ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "delimits"),
-                  attrib={ET.QName(nsClass.xlink, 'href'): str("#" + str(str(thermal_zone_id)))})
+                  attrib={ET.QName(nsClass['xlink'], 'href'): str("#" + str(str(thermal_zone_id)))})
 
     return construction_id, construction_id_windows
 

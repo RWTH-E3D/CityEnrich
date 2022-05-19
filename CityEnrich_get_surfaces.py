@@ -7,6 +7,7 @@ GroundPlate = []
 Windows = []
 Surface_lists = []
 
+
 def sort_outer_surfaces(gml_surfaces):
     i = 0
     e = 0

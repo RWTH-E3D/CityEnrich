@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import linalg as LA
+import uuid
 
 
 class SurfaceGML(object):
@@ -30,7 +31,7 @@ class SurfaceGML(object):
         self.surface_area = None
         self.surface_orientation = None
         self.surface_tilt = None
-
+        self.internal_id = uuid.uuid1()
         self.surface_area = self.get_gml_area()
         self.surface_orientation = self.get_gml_orientation()
         self.surface_tilt = self.get_gml_tilt()
