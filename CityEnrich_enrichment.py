@@ -366,10 +366,17 @@ def get_non_LDT_data(self, targetDict, buildingName):
         row.append(target.tE_time_end.dateTime().toString("hh:mm:ss"))
 
         # get interpolation type
-        row.append(target.cB_interpolation.currentText())
-
+        if target.cB_interpolation.currentText() != "":
+            row.append(target.cB_interpolation.currentText())
+        else:
+            row.append(None)
+        
         # get acquisition method
-        row.append(target.cB_acquisition_method.currentText())
+        if target.cB_acquisition_method.currentText() != "":
+            row.append(target.cB_acquisition_method.currentText())
+        else:
+            row.append(None)
+
 
         # description
         if target.txt_thematic_description.text() != "":
@@ -377,7 +384,7 @@ def get_non_LDT_data(self, targetDict, buildingName):
         else:
             row.append(None)
 
-        # get files To-Do
+        # get files
         if target.txt_wkday.text() != "":
             row.append(target.txt_wkday.text())
         else:
@@ -420,6 +427,7 @@ def get_non_LDT_data(self, targetDict, buildingName):
             else:
                 row.append(None)
         
+            # get number of occupants
             if key == "occu":
                 if target.txt_numberOccupant.text() != "" and checkIfStringIsNumber(self, target.txt_numberOccupant.text(), t=int, loc=f"{key}_number_of_occupants {buildingName}"):
                     row.append(int(target.txt_numberOccupant.text()))
