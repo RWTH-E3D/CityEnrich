@@ -304,9 +304,178 @@ def writeTree(self, rootElement, nss, lcorner, ucorner, minimum, maximum, baseNa
         with open(fullFilename, 'w') as f:
             f.write(content)
 
+def get_non_LDT_data(self, targetDict, buildingName):
+    """gathering non LDT data from GUI"""
+    row = []
+    thermalZone = targetDict["thermalzones"]
+    # getting floor area
+    if thermalZone.txt_area.text() != "" and checkIfStringIsNumber(self, thermalZone.txt_area.text(), float, f"floor area ({buildingName})"):
+        row.append(float(thermalZone.txt_area.text()))
+    else:
+        row.append(None)
+
+    if thermalZone.rB_Grossfloorarea.isChecked():
+        area_type = "gross"
+    elif thermalZone.rB_netfloorarea.isChecked():
+        area_type = "net"
+    else:
+        area_type = None
+    row.append(area_type)
+
+    # getting volume
+    if thermalZone.txt_volume.text() != "" and checkIfStringIsNumber(self, thermalZone.txt_volume.text(), float, f"volume ({buildingName})"):
+        row.append(float(thermalZone.txt_volume.text()))
+    else:
+        row.append(None)
+
+
+    if thermalZone.rB_Grossvolume.isChecked():
+        volume_type = "gross"
+    elif thermalZone.rB_netvolume.isChecked():
+        volume_type = "net"
+    else:
+        volume_type = None
+    row.append(volume_type)
+
+    # heating and cooling
+    if thermalZone.cB_heated.currentText() == "Yes":
+        heated = True
+    elif thermalZone.cB_heated.currentText() == "No":
+        heated = False
+    else:
+        heated = None
+    row.append(heated)
+
+    # heating and cooling
+    if thermalZone.cB_cooled.currentText() == "Yes":
+        cooled = True
+    elif thermalZone.cB_cooled.currentText() == "No":
+        cooled = False
+    else:
+        cooled = None
+    row.append(cooled)
+
+    for key, target in {"heat": thermalZone.heating, "cool": thermalZone.cooling, "vent": thermalZone.ventilation, "appl": thermalZone.appliances, "ligh": thermalZone.lighting, "occu": thermalZone.occupancy}.items():
+
+        # get date stamps
+        row.append(target.dE_date_start.dateTime().toString("yyyy-MM-dd"))
+        row.append(target.dE_date_end.dateTime().toString("yyyy-MM-dd"))
+
+        # get time stamps
+        row.append(target.tE_time_start.dateTime().toString("hh:mm:ss"))
+        row.append(target.tE_time_end.dateTime().toString("hh:mm:ss"))
+
+        # get interpolation type
+        row.append(target.cB_interpolation.currentText())
+
+        # get acquisition method
+        row.append(target.cB_acquisition_method.currentText())
+
+        # description
+        if target.txt_thematic_description.text() != "":
+            row.append(target.txt_thematic_description.text())
+        else:
+            row.append(None)
+
+        # get files To-Do
+        if target.txt_wkday.text() != "":
+            row.append(target.txt_wkday.text())
+        else:
+            row.append(None)
+        if target.txt_wkend.text() != "":
+            row.append(target.txt_wkend.text())
+        row.append(None)
+
+        # get unit
+        if target.txt_unit.text() != "":
+            row.append(target.txt_unit.text())
+        else:
+            row.append(None)
+        
+        # SI or fraction
+        if target.radio_SIunit.isChecked():
+            unit_type = "SI"
+        elif target.radio_fraction_unit.isChecked():
+            unit_type = "fraction"
+        else:
+            unit_type = None
+        row.append(unit_type)
+
+        if key in ["appl", "ligh", "occu"]:
+            # convective fraction
+            if target.txt_convectiveFraction.text() != "" and checkIfStringIsNumber(self, target.txt_convectiveFraction.text(), loc=f"{key}_convective_fraction {buildingName}"):
+                row.append(float(target.txt_convectiveFraction.text()))
+            else:
+                row.append(None)
+            
+            # radiant fraction
+            if target.txt_radiantFraction.text() != "" and checkIfStringIsNumber(self, target.txt_radiantFraction.text(), loc=f"{key}_radiant_fraction {buildingName}"):
+                row.append(float(target.txt_radiantFraction.text()))
+            else:
+                row.append(None)
+            
+            # total value
+            if target.txt_totalValue.text() != "" and checkIfStringIsNumber(self, target.txt_totalValue.text(), loc=f"{key}_total_value {buildingName}"):
+                row.append(float(target.txt_totalValue.text()))
+            else:
+                row.append(None)
+        
+            if key == "occu":
+                if target.txt_numberOccupant.text() != "" and checkIfStringIsNumber(self, target.txt_numberOccupant.text(), t=int, loc=f"{key}_number_of_occupants {buildingName}"):
+                    row.append(int(target.txt_numberOccupant.text()))
+                else:
+                    row.append(None)
+
+
+    # construction stuff here
+    construct = targetDict["construction"]
+    # get walls, roof, and ground here
+    for u_txtB, side in [[construct.txt_uvalue_walls, construct.layers_wall], [construct.txt_uvalue_roof, construct.layers_roof], [construct.txt_uvalue_ground, construct.layers_ground]]:
+        comp = []
+        for layer in side.values():
+            if layer["cB_material"].currentText() != "":
+                comp.append([layer["cB_material"].currentText(), layer["sB_thickness"].value()])
+        if comp != []:
+            row.append(comp)
+        else:
+            row.append(None)
+
+        if u_txtB.text() != "" and checkIfStringIsNumber(self, u_txtB.text(), float, "u_value in constuct {buildingname}"):
+            row.append(float(u_txtB.text()))
+        else:
+            row.append(None)
+
+    # window values
+    if construct.txt_window2wallRatio.text() != "" and checkIfStringIsNumber(self, construct.txt_window2wallRatio.text(), loc=f"window2wallratio {buildingName}"):
+        row.append(float(construct.txt_window2wallRatio.text()))
+    else:
+        row.append(None)
+
+    if construct.txt_transmittance_fraction_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_transmittance_fraction_windows.text(), loc=f"transmit_fract_window{buildingName}"):
+        row.append(float(construct.txt_transmittance_fraction_windows.text()))
+    else:
+        row.append(None)
+
+    if construct.txt_uvalue_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_uvalue_windows.text(), loc=f"u_value_window {buildingName}"):
+        row.append(float(construct.txt_uvalue_windows.text()))
+    else:
+        row.append(None)
+
+    if construct.txt_glazingratio_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_glazingratio_windows.text(), loc=f"glazingratio_window {buildingName}"):
+        row.append(float(construct.txt_glazingratio_windows.text()))
+    else:
+        row.append(None)
+
+    return row
+    
+
 
 def EnrichmentStart(self, selAll):
     """starting the Enrichment Process"""
+
+    # get defaults for non LDT data
+    non_LDT_defaults = get_non_LDT_data(self, self.buildingDict_all, "'all (selected) buildings'")
+
 
     # get data
     dataForFrame = []
@@ -355,165 +524,13 @@ def EnrichmentStart(self, selAll):
 
 
         # getting different from LDT
-        thermalZone = self.buildingDict[index]["thermalzones"]
+        non_LDT_data = get_non_LDT_data(self, self.buildingDict[index], buildingName)
         
-        # getting floor area
-        if thermalZone.txt_area.text() != "" and checkIfStringIsNumber(self, thermalZone.txt_area.text(), float, f"floor area ({buildingName})"):
-            row.append(float(thermalZone.txt_area.text()))
-        else:
-            row.append(None)
-
-        if thermalZone.rB_Grossfloorarea.isChecked():
-            area_type = "gross"
-        elif thermalZone.rB_netfloorarea.isChecked():
-            area_type = "net"
-        else:
-            area_type = None
-        row.append(area_type)
-
-        # getting volume
-        if thermalZone.txt_volume.text() != "" and checkIfStringIsNumber(self, thermalZone.txt_volume.text(), float, f"volume ({buildingName})"):
-            row.append(float(thermalZone.txt_volume.text()))
-        else:
-            row.append(None)
-
-
-        if thermalZone.rB_Grossvolume.isChecked():
-            volume_type = "gross"
-        elif thermalZone.rB_netvolume.isChecked():
-            volume_type = "net"
-        else:
-            volume_type = None
-        row.append(volume_type)
-
-        # heating and cooling
-        if thermalZone.cB_heated.currentText() == "Yes":
-            heated = True
-        elif thermalZone.cB_heated.currentText() == "No":
-            heated = False
-        else:
-            heated = None
-        row.append(heated)
-
-        # heating and cooling
-        if thermalZone.cB_cooled.currentText() == "Yes":
-            cooled = True
-        elif thermalZone.cB_cooled.currentText() == "No":
-            cooled = False
-        else:
-            cooled = None
-        row.append(cooled)
-
-        for key, target in {"heat": thermalZone.heating, "cool": thermalZone.cooling, "vent": thermalZone.ventilation, "appl": thermalZone.appliances, "ligh": thermalZone.lighting, "occu": thermalZone.occupancy}.items():
-
-            # get date stamps
-            row.append(target.dE_date_start.dateTime().toString("yyyy-MM-dd"))
-            row.append(target.dE_date_end.dateTime().toString("yyyy-MM-dd"))
-
-            # get time stamps
-            row.append(target.tE_time_start.dateTime().toString("hh:mm:ss"))
-            row.append(target.tE_time_end.dateTime().toString("hh:mm:ss"))
-
-            # get interpolation type
-            row.append(target.cB_interpolation.currentText())
-
-            # get acquisition method
-            row.append(target.cB_acquisition_method.currentText())
-
-            # description
-            if target.txt_thematic_description.text() != "":
-                row.append(target.txt_thematic_description.text())
-            else:
-                row.append(None)
-
-            # get files To-Do
-            if target.txt_wkday.text() != "":
-                row.append(target.txt_wkday.text())
-            else:
-                row.append(None)
-            if target.txt_wkend.text() != "":
-                row.append(target.txt_wkend.text())
-            row.append(None)
-
-            # get unit
-            if target.txt_unit.text() != "":
-                row.append(target.txt_unit.text())
-            else:
-                row.append(None)
-            
-            # SI or fraction
-            if target.radio_SIunit.isChecked():
-                unit_type = "SI"
-            elif target.radio_fraction_unit.isChecked():
-                unit_type = "fraction"
-            else:
-                unit_type = None
-            row.append(unit_type)
-
-            if key in ["appl", "ligh", "occu"]:
-                # convective fraction
-                if target.txt_convectiveFraction.text() != "" and checkIfStringIsNumber(self, target.txt_convectiveFraction.text(), loc=f"{key}_convective_fraction {buildingName}"):
-                    row.append(float(target.txt_convectiveFraction.text()))
-                else:
-                    row.append(None)
-                
-                # radiant fraction
-                if target.txt_radiantFraction.text() != "" and checkIfStringIsNumber(self, target.txt_radiantFraction.text(), loc=f"{key}_radiant_fraction {buildingName}"):
-                    row.append(float(target.txt_radiantFraction.text()))
-                else:
-                    row.append(None)
-                
-                # total value
-                if target.txt_totalValue.text() != "" and checkIfStringIsNumber(self, target.txt_totalValue.text(), loc=f"{key}_total_value {buildingName}"):
-                    row.append(float(target.txt_totalValue.text()))
-                else:
-                    row.append(None)
-            
-                if key == "occu":
-                    if target.txt_numberOccupant.text() != "" and checkIfStringIsNumber(self, target.txt_numberOccupant.text(), t=int, loc=f"{key}_number_of_occupants {buildingName}"):
-                        row.append(int(target.txt_numberOccupant.text()))
-                    else:
-                        row.append(None)
-
-
-        # construction stuff here
-        construct = self.buildingDict[index]["construction"]
-        # get walls, roof, and ground here
-        for u_txtB, side in [[construct.txt_uvalue_walls, construct.layers_wall], [construct.txt_uvalue_roof, construct.layers_roof], [construct.txt_uvalue_ground, construct.layers_ground]]:
-            comp = []
-            for layer in side.values():
-                if layer["cB_material"].currentText() != "":
-                    comp.append([layer["cB_material"].currentText(), layer["sB_thickness"].value()])
-            if comp != []:
-                row.append(comp)
-            else:
-                row.append(None)
-
-            if u_txtB.text() != "" and checkIfStringIsNumber(self, u_txtB.text(), float, "u_value in constuct {buildingname}"):
-                row.append(float(u_txtB.text()))
-            else:
-                row.append(None)
-
-        # window values
-        if construct.txt_window2wallRatio.text() != "" and checkIfStringIsNumber(self, construct.txt_window2wallRatio.text(), loc=f"window2wallratio {buildingName}"):
-            row.append(float(construct.txt_window2wallRatio.text()))
-        else:
-            row.append(None)
-
-        if construct.txt_transmittance_fraction_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_transmittance_fraction_windows.text(), loc=f"transmit_fract_window{buildingName}"):
-            row.append(float(construct.txt_transmittance_fraction_windows.text()))
-        else:
-            row.append(None)
-
-        if construct.txt_uvalue_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_uvalue_windows.text(), loc=f"u_value_window {buildingName}"):
-            row.append(float(construct.txt_uvalue_windows.text()))
-        else:
-            row.append(None)
-
-        if construct.txt_glazingratio_windows.text() != "" and checkIfStringIsNumber(self, construct.txt_glazingratio_windows.text(), loc=f"glazingratio_window {buildingName}"):
-            row.append(float(construct.txt_glazingratio_windows.text()))
-        else:
-            row.append(None)
+        # checks if None entries can be replaced with values from the defaults list
+        for i, entry in enumerate(non_LDT_data):
+            if entry == None and non_LDT_defaults[i] != None:
+                non_LDT_data[i] = non_LDT_defaults[i]
+        row.extend(non_LDT_data)
         
 
         
