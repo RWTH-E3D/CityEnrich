@@ -924,7 +924,7 @@ class thermalzones(QtWidgets.QWidget):
         self.btn_occupancy.clicked.connect(self.func_occupancy_schedules)
         self.btn_appliances.clicked.connect(self.func_appliances_schedules)
         self.btn_lighting.clicked.connect(self.func_lighting_schedules)
-        # self.btn_reset.clicked.connect(self.func_reset)
+        self.btn_reset.clicked.connect(self.func_reset)
         self.btn_close.clicked.connect(self.func_close)
 
         # create classes
@@ -937,6 +937,16 @@ class thermalzones(QtWidgets.QWidget):
 
         self.occupancy = occupancy_schedules("Occupancy Schedules")
         
+    def func_reset(self):
+        """reseets GUI to defaults"""
+        self.txt_area.setText("")
+        self.rB_Grossfloorarea.setChecked(False)
+        self.rB_netfloorarea.setChecked(False)
+        self.txt_volume.setText("")
+        self.rB_Grossvolume.setChecked(False)
+        self.rB_netvolume.setChecked(False)
+        self.cB_heated.setCurrentIndex(0)
+        self.cB_cooled.setCurrentIndex(0)
 
 
     def func_heating_schedules(self):
