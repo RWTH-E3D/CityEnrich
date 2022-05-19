@@ -566,9 +566,6 @@ def EnrichmentStart(self, selAll):
                                'win2wall', 'winTrans','winU', 'winGlazing'
                                ])
     print(df)
-    print(df['occu_interpol_method'])
-    print(df['occu_conv_frac'])
-    return
     
 
     # only consider buildings which are not in the target LoD
