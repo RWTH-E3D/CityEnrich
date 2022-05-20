@@ -10,6 +10,7 @@ from CityEnrich_get_surfaces import get_gml_surfaces, sort_outer_surfaces
 import gui_functions as gf
 import CityEnrich_selection as sel
 import twod_operations as twod
+import citygml_classes as cl
 import numpy as np
 
 """Testing Dataframe"""
@@ -734,6 +735,7 @@ def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
     Surfaces_lists = get_gml_surfaces(building_E, nsClass)
     polyIDs, exteriorSurfaces = _set_composite_surface(gml_volume_geometry, nsClass, Surfaces_lists)
 
+
     """Set Usage zone for thermal zone"""
     if thermal_zone['heat_interpol_method'].item() is not None or \
         thermal_zone['cool_interpol_method'].item() is not None or \
@@ -745,7 +747,6 @@ def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
         _set_usage_zone_lxml(thermal_zone, building_E, usage_zone_id, nsClass)
 
     """Set boundary Surfaces"""
-
     construction_id_windows = None
     material_ids = []
 
@@ -765,6 +766,7 @@ def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
             construction_id = None
             uvalue = thermal_zone['grnd_u'].item()
             layers = thermal_zone['grnd_layers'].item()
+
 
         for surface in exteriorSurfaces[i]:
             thermal_openings = []
@@ -927,6 +929,7 @@ def _set_gml_construction_lxml(element, nsClass, material_ids, uvalue, layers):
     ET.SubElement(construction_gml, ET.QName(nsClass['energy'], "uValue"), attrib={'uom': "W/K*m2"}).text = \
         str(uvalue)
 
+    print(layers)
     for layer_count in layers:
         print(layer_count)
         print(materialdict[layer_count[0]])
@@ -970,7 +973,7 @@ def _set_gml_construction_lxml(element, nsClass, material_ids, uvalue, layers):
 
 
 def _set_usage_zone_lxml(thermal_zone, gml_bldg, usage_zone_id, nsClass):
-    usage_zone = thermal_zone
+    usage_zone = thermal_zone.copy()
     gml_usage_zone = ET.SubElement(gml_bldg, ET.QName(nsClass['energy'], 'usageZone'))
     gml_Usage_Zone = ET.SubElement(gml_usage_zone, ET.QName(nsClass['energy'], 'UsageZone'),
                                    attrib={ET.QName(nsClass['gml'], 'id'): usage_zone_id})
@@ -980,7 +983,7 @@ def _set_usage_zone_lxml(thermal_zone, gml_bldg, usage_zone_id, nsClass):
         = str('manually set schedules with CityEnrich')
 
     """Heating"""
-    if thermal_zone['heat_interpol_method'].item() is not None:
+    if thermal_zone['heat_interpol_method'].item() is not np.nan:
         heating_schedule = ET.SubElement(gml_Usage_Zone, ET.QName(nsClass['energy'], 'heatingSchedule'))
         _set_schedule(heating_schedule, usage_zone,  usage_zone_id, "heat", nsClass)
 
@@ -990,15 +993,15 @@ def _set_usage_zone_lxml(thermal_zone, gml_bldg, usage_zone_id, nsClass):
     # TODO: Check together with isCooled if AHU is used and set cooling
 
     """Ventilation"""
-    if thermal_zone['vent_interpol_method'].item() is not None:
+    if thermal_zone['vent_interpol_method'].item() is not np.nan:
         ventilation_schedule = ET.SubElement(gml_Usage_Zone, ET.QName(nsClass['energy'], 'ventilationSchedule'))
         _set_schedule(ventilation_schedule, usage_zone, usage_zone_id, "vent", nsClass)
 
     """Occupiedby"""
-    if thermal_zone['occu_interpol_method'].item() is not None:
+    if thermal_zone['occu_interpol_method'].item() is not np.nan:
         print("here should be false")
         print(usage_zone['occu_num_occu'].item())
-        print(usage_zone['occu_num_occu'].items())
+        print(usage_zone['occu_num_occu'].item())
         occupied_by = ET.SubElement(gml_Usage_Zone, ET.QName(nsClass['energy'], 'occupiedBy'))
         occupants = ET.SubElement(occupied_by, ET.QName(nsClass['energy'], 'Occupants'),
                                   attrib={ET.QName(nsClass['gml'], 'id'): (usage_zone_id + "_Occupants")})
@@ -1017,7 +1020,7 @@ def _set_usage_zone_lxml(thermal_zone, gml_bldg, usage_zone_id, nsClass):
         _set_schedule(occupancy_rate, usage_zone, usage_zone_id, "occu", nsClass)
 
     """Machines"""
-    if thermal_zone['appl_interpol_method'].item() is not None:
+    if thermal_zone['appl_interpol_method'].item() is not np.nan:
         equipped_with = ET.SubElement(gml_Usage_Zone, ET.QName(nsClass['energy'], 'equippedWith'))
         electrical_app = ET.SubElement(equipped_with, ET.QName(nsClass['energy'], 'ElectricalAppliances'),
                                   attrib={ET.QName(nsClass['gml'], 'id'): (usage_zone_id + "_Machines")})
@@ -1037,7 +1040,7 @@ def _set_usage_zone_lxml(thermal_zone, gml_bldg, usage_zone_id, nsClass):
 
 
     """Lighting"""
-    if thermal_zone['ligh_interpol_method'].item() is not None:
+    if thermal_zone['ligh_interpol_method'].item() is not np.nan:
         equipped_with = ET.SubElement(gml_Usage_Zone, ET.QName(nsClass['energy'], 'equippedWith'))
         electrical_app = ET.SubElement(equipped_with, ET.QName(nsClass['energy'], 'LightingFacilities'),
                                   attrib={ET.QName(nsClass['gml'], 'id'): (usage_zone_id + "_Lighting")})
@@ -1116,10 +1119,9 @@ def _set_schedule(schedule_type, usage_zone, usage_zone_id, type_name, nsClass):
 
             ET.SubElement(regular_ts, ET.QName(nsClass['energy'], 'values'), attrib={'uom': uom}).text = \
                 str(usage_zone[f'{type_name}_sched_wkend'].item())
-    return
 
 
-def add_namespace(tree, alias, uri):
+def add_namespace(tree):
     """
     taken and adopted from Stackoverflow. "Adds" new Namespace (EnergyADE - energy) and Schema location to
     original file. For this it takes the original root and copies the elements to the newly created root.
@@ -1130,11 +1132,17 @@ def add_namespace(tree, alias, uri):
     """
     root = tree.getroot()
     nsmap = root.nsmap
-    nsmap[alias] = uri
-    new_root = ET.Element(root.tag, attrib=root.attrib, nsmap=nsmap)
+    nsClass = cl.CGML2
+
+    # creating new namespacemap
+    newNSmap = {'core': nsClass.core, 'gen': nsClass.gen, 'grp': nsClass.grp, 'app': nsClass.app, 'bldg': nsClass.bldg,
+                'gml': nsClass.gml, 'xal': nsClass.xal, 'xlink': nsClass.xlink, 'xsi': nsClass.xsi,
+                'energy': nsClass.energy}
     schemaLocation = "http://www.opengis.net/citygml/2.0 http://www.sig3d.org/citygml/2.0/energy/1.0/EnergyADE.xsd"
-    new_root = ET.Element(ET.QName(nsmap['core'], 'CityModel'),
-                         attrib={"{" + nsmap['xsi'] + "}schemaLocation": schemaLocation}, nsmap=nsmap)
+
+    new_root = ET.Element(root.tag, attrib=root.attrib, nsmap=nsmap)
+    new_root = ET.Element(ET.QName(nsClass.core, 'CityModel'),
+                         attrib={"{" + nsClass.xsi + "}schemaLocation":schemaLocation}, nsmap=newNSmap)
     for elem in root:
         new_root.append(elem)
     return new_root
