@@ -1112,7 +1112,7 @@
       <gml:name>KIT-FZK-Haus-ZementEstrich</gml:name>
       <energy:conductivity uom="W/K*m">1.4</energy:conductivity>
       <energy:density uom="kg/m3">2000</energy:density>
-      <energy:specificHeat uom="kJ/K*kg">1</energy:specificHeat>
+      <energy:specificHeat uom="scale">1</energy:specificHeat>
     </energy:SolidMaterial>
   </gml:featureMember>
   <gml:featureMember>
