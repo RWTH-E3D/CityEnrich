@@ -269,7 +269,7 @@ class mainWindow(QtWidgets.QWidget):
             if i != ix.row():
                 if self.tbl_buildings.item(i, 1).text().split('/')[0] == curText:
                     self.cBoxes[i].setChecked(ch.isChecked())
-                self.buildingDict[i]["selected"] = ch.isChecked()
+                    self.buildingDict[i]["selected"] = ch.isChecked()
 
 
 # class transformation(QtWidgets.QWidget):
