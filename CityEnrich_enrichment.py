@@ -393,7 +393,8 @@ def get_non_LDT_data(self, targetDict, buildingName):
             row.append(None)
         if target.txt_wkend.text() != "":
             row.append(target.txt_wkend.text())
-        row.append(None)
+        else:
+            row.append(None)
 
         # get unit
         if target.txt_unit.text() != "":
@@ -445,10 +446,8 @@ def get_non_LDT_data(self, targetDict, buildingName):
         for layer in side.values():
             if layer["cB_material"].currentText() != "":
                 comp.append([layer["cB_material"].currentText(), layer["sB_thickness"].value()])
-        if comp != []:
-            row.append(comp)
-        else:
-            row.append(None)
+
+        row.append(comp)
 
         if u_txtB.text() != "" and checkIfStringIsNumber(self, u_txtB.text(), float, "u_value in constuct {buildingname}"):
             row.append(float(u_txtB.text()))
