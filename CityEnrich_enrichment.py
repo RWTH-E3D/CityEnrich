@@ -318,9 +318,9 @@ def get_non_LDT_data(self, targetDict, buildingName):
         row.append(np.nan)
 
     if thermalZone.rB_Grossfloorarea.isChecked():
-        area_type = "gross"
+        area_type = "grossFloorArea"
     elif thermalZone.rB_netfloorarea.isChecked():
-        area_type = "net"
+        area_type = "netFloorArea"
     else:
         area_type = None
     row.append(area_type)
@@ -333,27 +333,27 @@ def get_non_LDT_data(self, targetDict, buildingName):
 
 
     if thermalZone.rB_Grossvolume.isChecked():
-        volume_type = "gross"
+        volume_type = "grossVolume"
     elif thermalZone.rB_netvolume.isChecked():
-        volume_type = "net"
+        volume_type = "netVolume"
     else:
         volume_type = None
     row.append(volume_type)
 
     # heating and cooling
     if thermalZone.cB_heated.currentText() == "Yes":
-        heated = True
+        heated = "true"
     elif thermalZone.cB_heated.currentText() == "No":
-        heated = False
+        heated = "false"
     else:
         heated = None
     row.append(heated)
 
     # heating and cooling
     if thermalZone.cB_cooled.currentText() == "Yes":
-        cooled = True
+        cooled = "true"
     elif thermalZone.cB_cooled.currentText() == "No":
-        cooled = False
+        cooled = "false"
     else:
         cooled = None
     row.append(cooled)
@@ -643,7 +643,7 @@ def enrichFile(self, filename, dfFile):
 
     """add EnergyADE Namespace and schemaLocation"""
     tree_copy = copy.deepcopy(tree)
-    nroot_E = add_namespace(tree_copy, 'energy', 'http://www.sig3d.org/citygml/2.0/energy/1.0')
+    nroot_E = add_namespace(tree_copy)
     nnss = nroot_E.nsmap
 
     # iterate over all buildings in the file
@@ -766,7 +766,6 @@ def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
             construction_id = None
             uvalue = thermal_zone['grnd_u'].item()
             layers = thermal_zone['grnd_layers'].item()
-
 
         for surface in exteriorSurfaces[i]:
             thermal_openings = []

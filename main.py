@@ -869,7 +869,7 @@ class thermalzones(QtWidgets.QWidget):
         self.cB_heated = QtWidgets.QComboBox()
         self.cB_heated.setFont(QtGui.QFont("Consolas"))
         self.cB_heated.setToolTip('Is the building heated?')
-        self.cB_heated.addItems(['', 'true', 'false'])
+        self.cB_heated.addItems(['', 'Yes', 'No'])
         self.pGrid.addWidget(self.cB_heated, 2, 1, 1, 1)
 
         self.lbl_cooled = QtWidgets.QLabel('Is cooled:')
@@ -878,7 +878,7 @@ class thermalzones(QtWidgets.QWidget):
         self.cB_cooled = QtWidgets.QComboBox()
         self.cB_cooled.setFont(QtGui.QFont("Consolas"))
         self.cB_cooled.setToolTip('Is the building cooled?')
-        self.cB_cooled.addItems(['', 'true', 'false'])
+        self.cB_cooled.addItems(['', 'Yes', 'No'])
         self.pGrid.addWidget(self.cB_cooled, 2, 3, 1, 1)
         self.vBox_forthermal.addLayout(self.pGrid)
 
