@@ -1395,7 +1395,7 @@ class base_schedules(QtWidgets.QWidget):
         self.mGrid.addWidget(self.lbl_acquisition_method, 2, 2, 1, 1)
 
         self.cB_acquisition_method = QtWidgets.QComboBox()  # ToDo: (Max) May be a dropdown?; (Simon) Add time selection
-        self.cB_acquisition_method.addItems(["", "measurement", "simulation", "calibratedSimulation", "estimation"," unknown"])
+        self.cB_acquisition_method.addItems(["", "measurement", "simulation", "calibratedSimulation", "estimation", "unknown"])
         self.mGrid.addWidget(self.cB_acquisition_method, 2, 3, 1, 1)
 
         self.lbl_thematic_description = QtWidgets.QLabel('Thematic Description:')
