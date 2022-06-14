@@ -688,10 +688,10 @@ def enrichFile(self, filename, dfFile):
 
             # if not self.rB_individualFiles.isChecked():
                 # need to safe file here
-        print("comes through here!")
-        baseName = os.path.splitext(filename)[0]
-        exportName = baseName + "_enriched_e3d_CE.gml"
-        writeTree(self, nroot_E, nnss, nLcorner_E, nUcorner_E, minimum, maximum, baseName, exportName)
+    print("comes through here!")
+    baseName = os.path.splitext(filename)[0]
+    exportName = baseName + "_enriched_e3d_CE.gml"
+    writeTree(self, nroot_E, nnss, nLcorner_E, nUcorner_E, minimum, maximum, baseName, exportName)
 
 
 def _set_gml_volume_lxml(building_E, nsClass, thermal_zone):
