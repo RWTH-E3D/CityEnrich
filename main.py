@@ -744,6 +744,15 @@ class enrichment_main(QtWidgets.QWidget):
             return self.buildingDict_all[type]
         else:
             return self.buildingDict[index][type]
+    
+    
+    def closeEvent(self, event: PySide2.QtGui.QCloseEvent) -> None:
+        """this makes sure that this window can't be closed while a child window is visible"""
+        if self.get_right_class("thermalzones").isVisible() or self.get_right_class("construction").isVisible():
+            gf.messageBox(self, "Important", "Please close the child window(s) first")
+            return event.ignore()
+        else:
+            return super().closeEvent(event)
 
 
     def func_thermalzones(self):
@@ -947,6 +956,14 @@ class thermalzones(QtWidgets.QWidget):
         self.rB_netvolume.setChecked(False)
         self.cB_heated.setCurrentIndex(0)
         self.cB_cooled.setCurrentIndex(0)
+
+    def closeEvent(self, event: PySide2.QtGui.QCloseEvent) -> None:
+        """this makes sure that this window can't be closed while a child window is visible"""
+        if self.heating.isVisible() or self.cooling.isVisible() or self.ventilation.isVisible() or self.appliances.isVisible() or self.lighting.isVisible() or self.occupancy.isVisible():
+            gf.messageBox(self, "Important", "Please close the child window(s) first")
+            return event.ignore()
+        else:
+            return super().closeEvent(event)
 
 
     def func_heating_schedules(self):
