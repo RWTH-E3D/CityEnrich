@@ -1,14 +1,12 @@
 from surfacegml import SurfaceGML
 
-gml_surfaces = []
-OuterWalls = []
-Roofs = []
-GroundPlate = []
-Windows = []
-Surface_lists = []
 
 
 def sort_outer_surfaces(gml_surfaces):
+    OuterWalls = []
+    Roofs = []
+    GroundPlate = []
+    Surface_lists = []
     i = 0
     e = 0
     for surface in gml_surfaces:
@@ -47,6 +45,7 @@ def get_gml_surfaces(city_object, namespace):
     :param city_object: lxml object
             CityGML City Object(Building)
     """
+    gml_surfaces = []
 
     lod = get_lod(city_object=city_object)
     if lod == 0:

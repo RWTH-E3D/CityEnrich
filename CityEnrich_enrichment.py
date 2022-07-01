@@ -1,4 +1,5 @@
 # import of libraries
+from types import NoneType
 from PySide2 import QtWidgets, QtGui
 import os
 import pandas as pd
@@ -725,10 +726,17 @@ def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
                                      attrib={ET.QName(nsClass['gml'], 'id'): thermal_zone_id})
     ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'contains'),
                   attrib={ET.QName(nsClass['xlink'], 'href'): str('#'+usage_zone_id)})
-    _set_gml_floor_area_lxml(gml_Thermal_Zone, nsClass, thermal_zone)
-    _set_gml_volume_lxml(gml_Thermal_Zone, nsClass, thermal_zone)
-    ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'isCooled')).text = str(thermal_zone['cooled'].item())
-    ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'isHeated')).text = str(thermal_zone['heated'].item())
+    print(thermal_zone["area"])
+    if not (all(np.isnan(i) for i in thermal_zone["area"])):
+        _set_gml_floor_area_lxml(gml_Thermal_Zone, nsClass, thermal_zone)
+    if not (all(np.isnan(i) for i in thermal_zone["volume"])):
+        _set_gml_volume_lxml(gml_Thermal_Zone, nsClass, thermal_zone)
+    print("xyz")
+    print(type(thermal_zone['cooled'].item()))
+    if not (all(type(i) is NoneType for i in thermal_zone["cooled"])):
+        ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'isCooled')).text = str(thermal_zone['cooled'].item())
+    if not (all(type(i) is NoneType for i in thermal_zone["heated"])):
+        ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'isHeated')).text = str(thermal_zone['heated'].item())
     gml_volume_geometry = ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'volumeGeometry'))
     # solid = ET.SubElement(gml_volume_geometry, ET.QName(nsClass['gml'], 'Solid'),
     #                                  attrib={ET.QName(nsClass['gml'], 'id'): str(thermal_zone_id + "_solid")})
@@ -751,21 +759,23 @@ def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
     material_ids = []
 
     for i in range(len(exteriorSurfaces)):
-        if i == 0:
+        if i == 0 and not np.isnan(thermal_zone["wall_u"].item()):
             surfaceType = 'WallSurface'
             construction_id = None
             uvalue = thermal_zone['wall_u'].item()
             layers = thermal_zone['wall_layers'].item()
-        elif i == 1:
+        elif i == 1 and not np.isnan(thermal_zone["roof_u"].item()):
             surfaceType = 'RoofSurface'
             construction_id = None
             uvalue = thermal_zone['roof_u'].item()
             layers = thermal_zone['roof_layers'].item()
-        elif i == 2:
+        elif i == 2 and not np.isnan(thermal_zone["grnd_u"].item()):
             surfaceType = 'GroundSurface'
             construction_id = None
             uvalue = thermal_zone['grnd_u'].item()
             layers = thermal_zone['grnd_layers'].item()
+        else:
+            continue
 
         for surface in exteriorSurfaces[i]:
             thermal_openings = []
@@ -869,8 +879,8 @@ def _set_gml_thermal_boundary_lxml(gml_zone, wall, thermal_openings, nsClass, co
     ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "construction"), attrib={ET.QName(nsClass['xlink'], 'href'):
                                                                                         str("#" + str(construction_id))})
 
-    if thermal_openings:
-        print(thermal_openings)
+    if thermal_openings and not (all(np.isnan(i) for i in thermal_openings)):
+        print(f"{thermal_openings=}")
         thermal_opening_id = uuid.uuid1()
         contains = ET.SubElement(thermal_boundary_E, ET.QName(nsClass['energy'], "contains"))
         thermal_opening_E = ET.SubElement(contains, ET.QName(nsClass['energy'], "ThermalOpening"),
