@@ -1,5 +1,4 @@
 # import of libraries
-from types import NoneType
 from PySide2 import QtWidgets, QtGui
 import os
 import pandas as pd
@@ -730,9 +729,9 @@ def _set_gml_thermal_zone_lxml(building_E, nsClass, thermal_zone):
         _set_gml_floor_area_lxml(gml_Thermal_Zone, nsClass, thermal_zone)
     if not (all(np.isnan(i) for i in thermal_zone["volume"])):
         _set_gml_volume_lxml(gml_Thermal_Zone, nsClass, thermal_zone)
-    if not (all(type(i) is NoneType for i in thermal_zone["cooled"])):
+    if not (all(i is None for i in thermal_zone["cooled"])):
         ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'isCooled')).text = str(thermal_zone['cooled'].item())
-    if not (all(type(i) is NoneType for i in thermal_zone["heated"])):
+    if not (all(i is None for i in thermal_zone["heated"])):
         ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'isHeated')).text = str(thermal_zone['heated'].item())
     gml_volume_geometry = ET.SubElement(gml_Thermal_Zone, ET.QName(nsClass['energy'], 'volumeGeometry'))
     # solid = ET.SubElement(gml_volume_geometry, ET.QName(nsClass['gml'], 'Solid'),
